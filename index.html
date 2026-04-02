@@ -622,20 +622,61 @@
         chatToggle.style.transform = 'scale(1)';
     });
 
+    function appendMessage(sender, text, isAI = false) {
+        const msgDiv = document.createElement('div');
+        msgDiv.className = `flex gap-3 ${isAI ? '' : 'justify-end'}`;
+        
+        const avatar = isAI 
+            ? '<div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white shrink-0"><span class="material-symbols-outlined text-sm">smart_toy</span></div>'
+            : `<div class="w-8 h-8 rounded-full bg-stone-200 overflow-hidden shrink-0"><img src="https://lh3.googleusercontent.com/aida-public/AB6AXuCmPhQYl2pVbRxD20QXa0Vk3-UQUP3WYdIY-_xl84yyeyJc8RNV6wBqosI67EnoGrqFvARvn-nym_NAM4Vx5RnFZgLHM1HS5gHDhPzUjpYiu7yNKjuD2jlwuYsrWlJ9jTcKKdiGWcLrdcmj0CDApppYzjYclqj2R5OgcZHUACr_y1ldaEUMeIl4FO2KwHe_31KNjx2ZsTGHC7rm2oTgfq-y7tm-OCQozlsv23DdeukT8auflqpbKjq8r1LWRy-3NySCnhkKouD-ika3" class="w-full h-full object-cover"></div>`;
+
+        msgDiv.innerHTML = `
+            ${isAI ? avatar : ''}
+            <div class="${isAI ? 'bg-stone-100' : 'bg-primary/10'} p-3 rounded-2xl ${isAI ? 'rounded-tl-none' : 'rounded-tr-none'} text-xs max-w-[80%] border ${isAI ? 'border-stone-100' : 'border-primary/10'} bubble-pop">
+                <p class="font-bold text-[10px] text-primary mb-1">${sender}</p>
+                <p>${text}</p>
+            </div>
+            ${isAI ? '' : avatar}
+        `;
+        chatMessages.appendChild(msgDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    async function handleAIResponse(userText) {
+        // Show typing indicator
+        const typingDiv = document.createElement('div');
+        typingDiv.className = 'flex gap-3 items-center opacity-60 italic text-[10px] py-1 pl-11';
+        typingDiv.id = 'ai-typing';
+        typingDiv.innerHTML = '<span class="animate-pulse">TerraFlow AI is analyzing...</span>';
+        chatMessages.appendChild(typingDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+
+        // Context-aware simulated responses
+        setTimeout(() => {
+            typingDiv.remove();
+            let response = "That's a fascinating observation. I've updated the shared expedition log.";
+            
+            const lowerText = userText.toLowerCase();
+            if (lowerText.includes('weather') || lowerText.includes('aqi')) {
+                response = "Current environmental sensors indicate stable conditions for the next 4 hours. Perfect for the ridge ascent.";
+            } else if (lowerText.includes('exped') || lowerText.includes('route')) {
+                response = "Analyzed historical paths. The valley route has a 12% lower inclination but watch for shifting terrain near the creek.";
+            } else if (lowerText.includes('safe') || lowerText.includes('danger')) {
+                response = "Terrain safety protocols are active. Stay within the marked resonance clusters for maximum signal stability.";
+            } else if (lowerText.includes('hello') || lowerText.includes('hi')) {
+                response = "Greetings, Explorer. How can I assist with your journey across the Dolomites today?";
+            }
+
+            appendMessage('TerraFlow AI', response, true);
+        }, 1500);
+    }
+
     function sendMessage() {
         const text = chatInput.value.trim();
         if (text) {
-            const msgDiv = document.createElement('div');
-            msgDiv.className = 'flex gap-3 justify-end';
-            msgDiv.innerHTML = `
-                <div class="bg-primary/10 p-3 rounded-2xl rounded-tr-none text-xs max-w-[80%] border border-primary/10 bubble-pop">
-                    <p class="font-bold text-[10px] text-primary mb-1">The Explorer (You)</p>
-                    <p>${text}</p>
-                </div>
-            `;
-            chatMessages.appendChild(msgDiv);
+            appendMessage('The Explorer (You)', text, false);
             chatInput.value = '';
-            chatMessages.scrollTop = chatMessages.scrollHeight;
+            handleAIResponse(text);
         }
     }
 

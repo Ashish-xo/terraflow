@@ -198,38 +198,38 @@
 <p class="text-[10px] uppercase tracking-widest text-primary font-bold">Elite Voyager Class</p>
 </div>
 </div>
-<button class="w-full bg-primary text-white rounded-full py-3 text-xs font-bold uppercase tracking-widest hover:scale-105 active:scale-95 transition-transform shadow-lg shadow-primary/20">
+<button onclick="showModal('New Expedition Setup', 'Preparing your equipment and mapping the next horizon...')" class="w-full bg-primary text-white rounded-full py-3 text-xs font-bold uppercase tracking-widest hover:scale-105 active:scale-95 transition-transform shadow-lg shadow-primary/20">
                 Start New Expedition
             </button>
 </div>
 <nav class="flex-1 space-y-1 font-sans text-sm uppercase tracking-widest px-2">
-<a class="sidebar-link flex items-center gap-4 text-orange-700 dark:text-orange-400 font-bold border-r-4 border-orange-700 px-6 py-3 bg-stone-200/50 rounded-lg" href="#">
+<a class="sidebar-link flex items-center gap-4 text-orange-700 dark:text-orange-400 font-bold border-r-4 border-orange-700 px-6 py-3 bg-stone-200/50 rounded-lg" href="#top">
 <span class="material-symbols-outlined" data-icon="person">person</span>
 <span>Profile</span>
 </a>
-<a class="sidebar-link flex items-center gap-4 text-stone-500 px-6 py-3 rounded-lg" href="#">
+<a class="sidebar-link flex items-center gap-4 text-stone-500 px-6 py-3 rounded-lg" href="#stats">
 <span class="material-symbols-outlined" data-icon="bar_chart">bar_chart</span>
 <span>Stats</span>
 </a>
-<a class="sidebar-link flex items-center gap-4 text-stone-500 px-6 py-3 rounded-lg" href="#">
+<a class="sidebar-link flex items-center gap-4 text-stone-500 px-6 py-3 rounded-lg" href="#journals">
 <span class="material-symbols-outlined" data-icon="auto_stories">auto_stories</span>
 <span>Journals</span>
 </a>
-<a class="sidebar-link flex items-center gap-4 text-stone-500 px-6 py-3 rounded-lg" href="#">
+<a class="sidebar-link flex items-center gap-4 text-stone-500 px-6 py-3 rounded-lg" href="#expeditions">
 <span class="material-symbols-outlined" data-icon="explore">explore</span>
 <span>Expeditions</span>
 </a>
-<a class="sidebar-link flex items-center gap-4 text-stone-500 px-6 py-3 rounded-lg" href="#">
+<a class="sidebar-link flex items-center gap-4 text-stone-500 px-6 py-3 rounded-lg" href="javascript:void(0)" onclick="showModal('Preferences', 'Customizing your exploration tools...')">
 <span class="material-symbols-outlined" data-icon="tune">tune</span>
 <span>Preferences</span>
 </a>
 </nav>
 <div class="px-6 space-y-4 pt-8 border-t border-stone-200/50">
-<a class="flex items-center gap-4 text-stone-400 hover:text-stone-600 text-xs transition-all" href="#">
+<a class="flex items-center gap-4 text-stone-400 hover:text-stone-600 text-xs transition-all" href="javascript:void(0)" onclick="showModal('Privacy', 'Your data is secured by mountain-grade encryption.')">
 <span class="material-symbols-outlined text-sm" data-icon="shield">shield</span>
 <span>Privacy</span>
 </a>
-<a class="flex items-center gap-4 text-stone-400 hover:text-stone-600 text-xs transition-all" href="#">
+<a class="flex items-center gap-4 text-stone-400 hover:text-stone-600 text-xs transition-all" href="javascript:void(0)" onclick="showModal('Support', 'Connecting you to base camp...')">
 <span class="material-symbols-outlined text-sm" data-icon="help_center">help_center</span>
 <span>Support</span>
 </a>
@@ -295,8 +295,24 @@
             </button>
         </div>
     </div>
+    <!-- Active Modal (Hidden by default) -->
+    <div id="universal-modal" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-stone-950/40 backdrop-blur-sm opacity-0 pointer-events-none transition-all duration-300">
+        <div class="bg-white dark:bg-stone-900 rounded-3xl p-8 max-w-md w-full shadow-2xl scale-90 transition-all duration-300 transform" id="modal-content">
+            <div class="flex items-center gap-4 mb-6">
+                <div class="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                    <span class="material-symbols-outlined">explore</span>
+                </div>
+                <h3 class="font-headline italic text-2xl" id="modal-title">Expedition Alert</h3>
+            </div>
+            <p class="text-stone-600 dark:text-stone-400 font-body mb-8 leading-relaxed" id="modal-text">This feature is currently in preparation for the next mission.</p>
+            <button onclick="hideModal()" class="w-full bg-stone-900 dark:bg-stone-100 text-white dark:text-stone-900 py-3 rounded-full font-bold uppercase tracking-widest text-xs hover:scale-105 active:scale-95 transition-transform">
+                Understood
+            </button>
+        </div>
+    </div>
+
 <!-- Live Status Widgets & Stats Bento Grid -->
-<section class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-20">
+<section class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-20" id="stats">
 <!-- Elevation Widget -->
 <div class="bg-surface-container-low p-8 rounded-xl flex flex-col justify-between h-48 border-b-2 border-primary/10">
 <div class="flex justify-between items-start">
@@ -357,7 +373,7 @@
 </div>
 </div>
 <!-- Journal Preview Card (Wide) -->
-<div class="md:col-span-3 bg-surface-container-lowest rounded-xl overflow-hidden flex flex-col md:flex-row">
+<div class="md:col-span-3 bg-surface-container-lowest rounded-xl overflow-hidden flex flex-col md:flex-row" id="journals">
 <div class="md:w-1/2 h-64 md:h-auto overflow-hidden">
 <img class="w-full h-full object-cover hover:scale-105 transition-transform duration-1000" data-alt="cinematic shot of misty mountain peaks at dawn with deep blue and purple tones" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDoDL1Uy1k-LG2wQDmWGPsIX9Skc-Odn71UQi5W8g4ezOyQM7GqewT8bqQi-b45otYcdyTTRwe4VgT8pTf4k9Uc2SW2jlpK35McVSu1N-SjzYM0SccmXQQJyv3ZPBdfs_gaVTkDncbHP0lR-ZDtAshU-TBxbzHeXO1m0NCpOZqW8bG9UMOCxn0WXMXAB3IEOzyckC0OW6lFuB7YoxR3KLxQW7AoA2CLh6lcsXF8oy72Wi51SWEmP9fDVs3sbylMcu7kDXX2zD_pGdIx"/>
 </div>
@@ -367,7 +383,7 @@
 <p class="font-body text-sm text-on-surface-variant leading-relaxed mb-6">
                         "At 4,000 meters, the air becomes a physical weight. Here, the maps fail to capture the shimmering distortion of the salt flats..."
                     </p>
-<a class="flex items-center gap-2 text-on-surface font-bold text-sm group" href="#">
+<a class="flex items-center gap-2 text-on-surface font-bold text-sm group" href="javascript:void(0)" onclick="showModal('Journal Expander', 'Opening the physical journal for deep reading...')">
                         Read full entry
                         <span class="material-symbols-outlined text-lg group-hover:translate-x-1 transition-transform" data-icon="arrow_forward">arrow_forward</span>
 </a>
@@ -375,7 +391,7 @@
 </div>
 </section>
 <!-- Expedition History Section -->
-<section class="mb-20">
+<section class="mb-20" id="expeditions">
 <div class="flex justify-between items-end mb-10">
 <div>
 <h2 class="font-headline text-4xl italic mb-2">Expedition History</h2>
@@ -627,6 +643,62 @@
     chatInput.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') sendMessage();
     });
+
+    // Modal Logic
+    const modal = document.getElementById('universal-modal');
+    const modalContent = document.getElementById('modal-content');
+    const modalTitle = document.getElementById('modal-title');
+    const modalText = document.getElementById('modal-text');
+
+    function showModal(title, text) {
+        if (modal && modalTitle && modalText) {
+            modalTitle.innerText = title;
+            modalText.innerText = text;
+            modal.classList.remove('opacity-0', 'pointer-events-none');
+            const content = document.getElementById('modal-content');
+            if (content) content.classList.remove('scale-90');
+        }
+    }
+
+    function hideModal() {
+        if (modal) {
+            modal.classList.add('opacity-0', 'pointer-events-none');
+            const content = document.getElementById('modal-content');
+            if (content) content.classList.add('scale-90');
+        }
+    }
+
+    // Smooth Scrolling for all internal links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            const href = this.getAttribute('href');
+            if (href === '#') return;
+            e.preventDefault();
+            const target = document.querySelector(href);
+            if (target) {
+                target.scrollIntoView({
+                    behavior: 'smooth'
+                });
+                
+                // Update active state in sidebar
+                if (this.classList.contains('sidebar-link')) {
+                    document.querySelectorAll('.sidebar-link').forEach(l => {
+                        l.classList.remove('text-orange-700', 'border-r-4', 'border-orange-700', 'bg-stone-200/50');
+                        l.classList.add('text-stone-500');
+                    });
+                    this.classList.add('text-orange-700', 'border-r-4', 'border-orange-700', 'bg-stone-200/50');
+                    this.classList.remove('text-stone-500');
+                }
+            }
+        });
+    });
+
+    // Close modal on outside click
+    if (modal) {
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) hideModal();
+        });
+    }
 
 </script>
 <style>

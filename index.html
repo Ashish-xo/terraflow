@@ -662,6 +662,16 @@
         chatMessages.scrollTop = chatMessages.scrollHeight;
     }
 
+    function getMockDetailedWeather() {
+        const temp = Math.floor(Math.random() * (22 - 14) + 14);
+        const hours = [2, 4, 6, 8, 10, 12];
+        const forecast = hours.map(h => {
+            const t = temp - Math.floor(h/2);
+            return `${h}h: ${t}°C`;
+        }).join(' | ');
+        return { current: temp, timeline: forecast };
+    }
+
     async function handleAIResponse(userText) {
         // ONLY respond if tagged with @ai
         if (!userText.toLowerCase().includes('@ai')) return;
@@ -680,8 +690,9 @@
             let response = "Acknowledged. I've analyzed your tag. Since you reached out, I'm updating your project metrics.";
             
             const lowerText = userText.toLowerCase();
-            if (lowerText.includes('weather') || lowerText.includes('aqi')) {
-                response = "Summon confirmed. Current sensor data for your @ai request: Terrain is stable, but watch for incoming temperature shifts.";
+            if (lowerText.includes('weather') || lowerText.includes('aqi') || lowerText.includes('temp')) {
+                const weather = getMockDetailedWeather();
+                response = `Summon confirmed. **Current Terrain Temperature: ${weather.current}°C**. \n\n**12-Hour Forecast Logic:** \n${weather.timeline} \n\nConditions remain stable for trek operations, but expect a gradual dip as sunset approaches.`;
             } else if (lowerText.includes('exped') || lowerText.includes('route')) {
                 response = "Route analysis requested. I've mapped a path specifically for your @ai summon that saves 12% in oxygen levels.";
             } else if (lowerText.includes('safe') || lowerText.includes('danger')) {

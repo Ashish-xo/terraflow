@@ -267,7 +267,11 @@
         <div class="p-6 bg-primary text-white rounded-t-[1.5rem] flex justify-between items-center">
             <div>
                 <h3 class="font-headline italic text-xl">TerraFlow Community</h3>
-                <p class="text-[10px] uppercase tracking-widest opacity-80">142 Exploring Now</p>
+                <div class="flex items-center gap-2">
+                    <p class="text-[8px] border border-stone-100/30 px-1 rounded uppercase tracking-widest opacity-80">142 Exploring Now</p>
+                    <span class="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse"></span>
+                    <p class="text-[8px] uppercase tracking-widest text-green-100/80 font-bold">AI Status: Online</p>
+                </div>
             </div>
             <button class="material-symbols-outlined" id="close-chat">close</button>
         </div>
@@ -612,9 +616,19 @@
     const sendButton = document.getElementById('send-chat');
     const chatMessages = document.getElementById('chat-messages');
 
+    let aiWelcomed = false;
+
     chatToggle.addEventListener('click', () => {
         chatWidget.classList.add('active');
         chatToggle.style.transform = 'scale(0)';
+        
+        // Immediate AI Presence
+        if (!aiWelcomed) {
+            setTimeout(() => {
+                appendMessage('TerraFlow AI', 'Greetings, Explorer. I am your integrated AI assistant. I can analyze terrain data, weather patterns, and mission safety in real-time. How can I help you navigate the Dolomite Ridge today?', true);
+                aiWelcomed = true;
+            }, 800);
+        }
     });
 
     closeChat.addEventListener('click', () => {

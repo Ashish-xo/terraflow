@@ -292,11 +292,17 @@
                 </div>
             </div>
         </div>
-        <div class="p-4 border-t border-stone-100 flex gap-2">
-            <input type="text" id="chat-input" placeholder="Message the community..." class="flex-1 bg-stone-50 border-none rounded-full px-4 py-2 text-xs focus:ring-1 focus:ring-primary/20">
-            <button class="bg-primary text-white w-8 h-8 rounded-full flex items-center justify-center hover:scale-110 transition-transform" id="send-chat">
-                <span class="material-symbols-outlined text-sm">send</span>
-            </button>
+        <div class="px-4 py-2 bg-stone-50 border-t border-stone-100 flex flex-col gap-2">
+            <p class="text-[8px] uppercase tracking-widest text-stone-400 font-bold flex items-center gap-1">
+                <span class="material-symbols-outlined text-[10px]">info</span>
+                Tag <span class="text-primary">@ai</span> to summon the assistant
+            </p>
+            <div class="flex gap-2">
+                <input type="text" id="chat-input" placeholder="Message or tag @ai..." class="flex-1 bg-white border-none rounded-full px-4 py-2 text-xs focus:ring-1 focus:ring-primary/20">
+                <button class="bg-primary text-white w-8 h-8 rounded-full flex items-center justify-center hover:scale-110 transition-transform" id="send-chat">
+                    <span class="material-symbols-outlined text-sm">send</span>
+                </button>
+            </div>
         </div>
     </div>
     <!-- Active Modal (Hidden by default) -->
@@ -657,32 +663,35 @@
     }
 
     async function handleAIResponse(userText) {
+        // ONLY respond if tagged with @ai
+        if (!userText.toLowerCase().includes('@ai')) return;
+
         // Show typing indicator
         const typingDiv = document.createElement('div');
         typingDiv.className = 'flex gap-3 items-center opacity-60 italic text-[10px] py-1 pl-11';
         typingDiv.id = 'ai-typing';
-        typingDiv.innerHTML = '<span class="animate-pulse">TerraFlow AI is analyzing...</span>';
+        typingDiv.innerHTML = '<span class="animate-pulse">TerraFlow AI is analyzing your summon...</span>';
         chatMessages.appendChild(typingDiv);
         chatMessages.scrollTop = chatMessages.scrollHeight;
 
         // Context-aware simulated responses
         setTimeout(() => {
             typingDiv.remove();
-            let response = "That's a fascinating observation. I've updated the shared expedition log.";
+            let response = "Acknowledged. I've analyzed your tag. Since you reached out, I'm updating your project metrics.";
             
             const lowerText = userText.toLowerCase();
             if (lowerText.includes('weather') || lowerText.includes('aqi')) {
-                response = "Current environmental sensors indicate stable conditions for the next 4 hours. Perfect for the ridge ascent.";
+                response = "Summon confirmed. Current sensor data for your @ai request: Terrain is stable, but watch for incoming temperature shifts.";
             } else if (lowerText.includes('exped') || lowerText.includes('route')) {
-                response = "Analyzed historical paths. The valley route has a 12% lower inclination but watch for shifting terrain near the creek.";
+                response = "Route analysis requested. I've mapped a path specifically for your @ai summon that saves 12% in oxygen levels.";
             } else if (lowerText.includes('safe') || lowerText.includes('danger')) {
-                response = "Terrain safety protocols are active. Stay within the marked resonance clusters for maximum signal stability.";
+                response = "Safety check: The '@ai' override shows all regional sensors as green, except for the high-altitude north passage.";
             } else if (lowerText.includes('hello') || lowerText.includes('hi')) {
-                response = "Greetings, Explorer. How can I assist with your journey across the Dolomites today?";
+                response = "TerraFlow AI at your service. I'm only summoned when needed. How can I assist with your trek?";
             }
 
             appendMessage('TerraFlow AI', response, true);
-        }, 1500);
+        }, 1200);
     }
 
     function sendMessage() {

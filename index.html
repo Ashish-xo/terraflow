@@ -266,7 +266,7 @@
 <div class="mt-20">
 <h3 class="text-2xl font-headline font-black uppercase mb-2">Hidden Gems</h3>
 <p class="text-frontier-deep/80 text-sm font-bold uppercase tracking-wide">Discover off-the-beaten-path locations recommended by our trusted community.</p>
-<button onclick="openModal('Location Tracker', 'Loading community recommendations to your view. Please wait...')" class="mt-6 flex items-center gap-2 group-hover:translate-x-2 transition-transform">
+<button onclick="scrollToMap()" class="mt-6 flex items-center gap-2 group-hover:translate-x-2 transition-transform">
 <span class="font-black text-xs uppercase tracking-widest">View Map</span>
 <span class="material-symbols-outlined text-sm">trending_flat</span>
 </button>
@@ -415,7 +415,23 @@
     </button>
 </div>
 
-<!-- Universial Modal Overlay -->
+<!-- Weather Forecast Modal (dedicated) -->
+<div id="weather-modal" class="fixed inset-0 z-[200] hidden items-center justify-center bg-frontier-deep/95 backdrop-blur-md opacity-0 transition-opacity duration-300">
+    <div class="glass-frontier p-8 border border-frontier-lime/30 w-[95%] max-w-2xl shadow-[0_0_40px_rgba(206,238,147,0.1)] relative scale-95 transition-transform duration-300" id="weather-modal-content">
+        <button onclick="closeWeatherModal()" class="absolute top-4 right-4 text-frontier-text hover:text-white transition-colors">
+            <span class="material-symbols-outlined">close</span>
+        </button>
+        <div class="flex items-center gap-4 mb-6 pb-4 border-b border-frontier-lime/20">
+            <span class="material-symbols-outlined text-4xl text-frontier-lime" style="font-variation-settings: 'FILL' 1;">partly_cloudy_day</span>
+            <div>
+                <h2 class="font-headline font-black text-2xl text-white uppercase tracking-widest">12-Hour Forecast</h2>
+                <div class="text-[10px] text-frontier-lime tracking-[0.3em] uppercase border-l border-frontier-lime pl-2 mt-1">LIVE SATELLITE DATA // OPEN-METEO</div>
+            </div>
+        </div>
+        <div id="forecast-grid" class="grid grid-cols-4 md:grid-cols-6 gap-3 mb-6"></div>
+        <p class="text-[9px] text-frontier-text italic text-center">Data synchronized via Open-Meteo Global Satellite Grid. Updated every hour.</p>
+    </div>
+</div>
 <div id="hud-modal" class="fixed inset-0 z-[100] hidden items-center justify-center bg-frontier-deep/90 backdrop-blur-md opacity-0 transition-opacity duration-300">
     <div class="glass-frontier p-8 border border-frontier-lime/30 w-[90%] max-w-md shadow-[0_0_30px_rgba(206,238,147,0.1)] relative scale-95 transition-transform duration-300" id="hud-modal-content">
         <button onclick="closeModal()" class="absolute top-4 right-4 text-frontier-text hover:text-white transition-colors">
@@ -590,42 +606,75 @@ function updateWeatherUI(code, iconEl, descEl) {
 
 function showWeatherForecast() {
     if (!hourlyForecastData) {
-        openModal("Syncing Data", "We are still retrieving the latest atmospheric telemetry. Please wait a moment...");
+        openModal("Syncing Data", "We are still retrieving your live weather. Please allow location access and try again in a moment.");
         return;
     }
 
     const now = new Date();
     const currentHour = now.getHours();
-    
-    let forecastHTML = `<div class="grid grid-cols-4 gap-4 mt-4">`;
-    
-    // Get next 12 hours
+    const forecastGrid = document.getElementById('forecast-grid');
+    forecastGrid.innerHTML = ''; // Clear old
+
+    // Render next 12 hours as DOM elements
     for (let i = 0; i < 12; i++) {
-        const hourIdx = (currentHour + i) % 24;
+        const hour = (currentHour + i) % 24;
         const temp = Math.round(hourlyForecastData.temperature_2m[currentHour + i]);
         const code = hourlyForecastData.weathercode[currentHour + i];
         
-        let icon = "cloudy";
-        if (code <= 3) icon = "sunny";
-        else if (code >= 61) icon = "rainy";
+        // Map WMO weather code to a readable label and icon
+        let icon = 'cloud';
+        let label = 'Cloudy';
+        if (code === 0) { icon = 'sunny'; label = 'Clear'; }
+        else if (code <= 2) { icon = 'partly_cloudy_day'; label = 'Mostly Clear'; }
+        else if (code === 3) { icon = 'cloud'; label = 'Overcast'; }
+        else if (code <= 48) { icon = 'foggy'; label = 'Fog'; }
+        else if (code <= 57) { icon = 'grain'; label = 'Drizzle'; }
+        else if (code <= 67) { icon = 'rainy'; label = 'Rain'; }
+        else if (code <= 77) { icon = 'ac_unit'; label = 'Snow'; }
+        else if (code <= 82) { icon = 'rainy'; label = 'Showers'; }
+        else if (code <= 99) { icon = 'thunderstorm'; label = 'Thunder'; }
 
-        forecastHTML += `
-            <div class="flex flex-col items-center p-2 border border-frontier-indigo/10 bg-frontier-deep/50 rounded">
-                <span class="text-[9px] text-frontier-indigo/60 mb-1">${(currentHour + i) % 24}:00</span>
-                <span class="material-symbols-outlined text-lg text-frontier-lime mb-1">${icon}</span>
-                <span class="text-xs font-bold text-white">${temp}°</span>
-            </div>
+        const isNow = i === 0;
+        const card = document.createElement('div');
+        card.className = `flex flex-col items-center p-3 rounded border ${
+            isNow 
+            ? 'border-frontier-lime bg-frontier-lime/10' 
+            : 'border-frontier-indigo/20 bg-frontier-deep/60'
+        } transition-all hover:border-frontier-lime/50`;
+        card.innerHTML = `
+            <span class="text-[9px] font-bold tracking-widest mb-2 ${ isNow ? 'text-frontier-lime' : 'text-frontier-indigo/60' }">${ isNow ? 'NOW' : String(hour).padStart(2,'0') + ':00' }</span>
+            <span class="material-symbols-outlined text-2xl mb-1 ${ isNow ? 'text-frontier-lime' : 'text-frontier-text' }" style="font-variation-settings: 'FILL' 1;">${icon}</span>
+            <span class="text-sm font-black text-white">${temp}&deg;</span>
+            <span class="text-[8px] text-frontier-text mt-1 tracking-wide">${label}</span>
         `;
+        forecastGrid.appendChild(card);
     }
-    forecastHTML += `</div>`;
 
-    openModal("12-Hour Forecast", `
-        <div class="text-left">
-            <p class="text-[10px] text-frontier-lime tracking-widest mb-4">ATMOSPHERIC PROJECTION // LOCAL_TIME</p>
-            ${forecastHTML}
-            <p class="mt-6 text-[9px] text-frontier-text italic">Data synchronized via Open-Meteo Global Satellite Grid.</p>
-        </div>
-    `);
+    // Open the dedicated weather modal
+    const modal = document.getElementById('weather-modal');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    setTimeout(() => {
+        modal.classList.remove('opacity-0');
+        document.getElementById('weather-modal-content').classList.remove('scale-95');
+    }, 10);
+}
+
+function closeWeatherModal() {
+    const modal = document.getElementById('weather-modal');
+    modal.classList.add('opacity-0');
+    document.getElementById('weather-modal-content').classList.add('scale-95');
+    setTimeout(() => {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }, 300);
+}
+
+function scrollToMap() {
+    const mapSection = document.getElementById('nav-section');
+    if (mapSection) {
+        mapSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
 }
 
 // --- NEW INTELLIGENCE LAYER: AI MAP NAVIGATION ---

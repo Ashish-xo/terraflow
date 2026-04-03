@@ -12,6 +12,10 @@
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..700&amp;display=swap" rel="stylesheet"/>
 <!-- Material Symbols -->
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Leaflet Map CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+<!-- Leaflet Map JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 <script id="tailwind-config">
       tailwind.config = {
         darkMode: "class",
@@ -208,17 +212,17 @@
 </div>
 <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
 <!-- Weather Feature -->
-<div class="md:col-span-1 glass-frontier p-8 flex flex-col justify-between group hover:border-frontier-indigo transition-all border border-frontier-indigo/10">
+<div class="md:col-span-1 glass-frontier p-8 flex flex-col justify-between group hover:border-frontier-indigo transition-all border border-frontier-indigo/10" id="live-weather-card">
 <div class="flex justify-between items-start">
-<span class="material-symbols-outlined text-4xl text-frontier-indigo" data-icon="cloudy_snowing">cloudy_snowing</span>
+<span class="material-symbols-outlined text-4xl text-frontier-indigo" id="weather-icon" data-icon="cloudy_snowing">cloudy_snowing</span>
 <div class="text-right">
-<div class="text-4xl font-headline font-black text-white">24°C</div>
-<div class="text-[10px] uppercase tracking-widest font-bold text-frontier-indigo">ATMOSPHERE_ID</div>
+<div class="text-4xl font-headline font-black text-white" id="weather-temp">--°C</div>
+<div class="text-[10px] uppercase tracking-widest font-bold text-frontier-indigo">LIVE_UPDATE</div>
 </div>
 </div>
 <div class="mt-20">
 <h3 class="text-2xl font-headline font-bold text-white uppercase mb-2">Live Weather Tracking</h3>
-<p class="text-frontier-text text-sm uppercase tracking-wider">Accurate, up-to-the-minute weather forecasts for every stop on your trip.</p>
+<p class="text-frontier-text text-sm uppercase tracking-wider" id="weather-desc">Accurate, up-to-the-minute weather forecasts for every stop on your trip.</p>
 </div>
 </div>
 <!-- Hotel/Stay Feature -->
@@ -270,6 +274,48 @@
 </div>
 </div>
 </div>
+</section>
+<!-- AI Co-pilot & Map Section -->
+<section class="py-24 px-6 bg-frontier-deep border-y border-frontier-indigo/10 relative overflow-hidden" id="nav-section">
+    <!-- Grid decorations -->
+    <div class="absolute inset-0 opacity-[0.03] pointer-events-none" style="background-image: radial-gradient(#a3a6ff 1px, transparent 1px); background-size: 40px 40px;"></div>
+    
+    <div class="max-w-7xl mx-auto relative z-10">
+        <div class="flex flex-col lg:flex-row gap-12">
+            <!-- Left: AI Control Panel -->
+            <div class="lg:w-1/3 flex flex-col justify-between scroll-slide-left">
+                <div>
+                    <span class="text-xs font-bold tracking-[0.5em] uppercase text-frontier-lime mb-6 block border-l-4 border-frontier-lime pl-4">Navigation Co-Pilot</span>
+                    <h2 class="font-headline text-4xl md:text-5xl font-black text-white mb-6 uppercase tracking-tighter italic">Where to <br/><span class="text-frontier-indigo">next?</span></h2>
+                    <p class="font-body text-frontier-text text-sm uppercase tracking-wider mb-8 leading-relaxed">
+                        Type any city name or coordinate, and let the AI sync your view to the location. Get real-time routing insights instantly.
+                    </p>
+                </div>
+
+                <div class="glass-frontier p-6 co-pilot-panel bg-frontier-navy/80">
+                    <div id="co-pilot-log" class="h-48 overflow-y-auto mb-4 space-y-3 text-[11px] font-['Space_Grotesk'] uppercase tracking-widest scroll-smooth">
+                        <div class="text-frontier-lime/70"><span class="text-frontier-lime">></span> AI Co-pilot online. Waiting for destination...</div>
+                    </div>
+                    <div class="flex gap-2">
+                        <input id="co-pilot-input" type="text" placeholder="ENTER CITY..." class="flex-1 bg-frontier-deep border border-frontier-indigo/30 rounded-sm px-3 py-3 text-xs text-white placeholder-frontier-text focus:outline-none focus:border-frontier-lime uppercase tracking-[0.2em]"/>
+                        <button onclick="navCommand()" class="w-12 h-12 bg-frontier-lime text-frontier-deep flex items-center justify-center hover:scale-110 active:scale-95 transition-all">
+                            <span class="material-symbols-outlined font-black">near_me</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: The Map -->
+            <div class="lg:w-2/3 h-[600px] relative scroll-reveal">
+                <div id="map" class="shadow-[0_0_50px_rgba(163,166,255,0.1)] rounded-sm"></div>
+                <!-- Interactive Overlay -->
+                <div class="absolute bottom-6 left-6 z-[1000] glass-frontier px-4 py-2 text-[10px] uppercase font-bold tracking-widest text-frontier-indigo flex items-center gap-3">
+                    <span class="w-2 h-2 rounded-full bg-frontier-lime animate-ping"></span>
+                    Live Telemetry Syncing...
+                </div>
+            </div>
+        </div>
+    </div>
 </section>
 <!-- Testimonial -->
 <section class="py-32 px-6 border-t border-frontier-indigo/10">
@@ -433,6 +479,21 @@
     padding-bottom: 0.5rem !important;
     border-bottom: 1px solid rgba(163, 166, 255, 0.2);
 }
+#map {
+    height: 600px;
+    width: 100%;
+    z-index: 10;
+    border: 1px solid rgba(163, 166, 255, 0.2);
+}
+.leaflet-container {
+    background: #070d1f !important;
+}
+.leaflet-tile {
+    filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%);
+}
+.co-pilot-panel {
+    border-left: 2px solid #ceee93;
+}
 </style>
 <script>
 // --- GLOBAL UI FUNCTIONS ---
@@ -473,8 +534,116 @@ function closeModal() {
     }, 300);
 }
 
+// --- NEW INTELLIGENCE LAYER: REAL-TIME WEATHER ---
+async function initWeather() {
+    if ("geolocation" in navigator) {
+        navigator.geolocation.getCurrentPosition(async (position) => {
+            const { latitude, longitude } = position.coords;
+            try {
+                const response = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true`);
+                const data = await response.json();
+                const { temperature, weathercode } = data.current_weather;
+                
+                const tempEl = document.getElementById('weather-temp');
+                if (tempEl) tempEl.innerText = `${Math.round(temperature)}°C`;
+                
+                // Simple weather code to icon mapping
+                const weatherDesc = document.getElementById('weather-desc');
+                const weatherIcon = document.getElementById('weather-icon');
+                
+                if (weathercode <= 3) {
+                    weatherIcon.innerText = "sunny";
+                    weatherDesc.innerText = "Clear skies and optimal traveling conditions in your area.";
+                } else if (weathercode >= 61) {
+                    weatherIcon.innerText = "rainy";
+                    weatherDesc.innerText = "Wet weather ahead. Proceed with caution and enjoy the vibe.";
+                } else {
+                    weatherIcon.innerText = "cloudy";
+                    weatherDesc.innerText = "Partial cloud cover. Comfortable for outdoor exploration.";
+                }
+                
+                document.getElementById('weather-desc').innerText += " (Live Sync)";
+            } catch (err) {
+                console.error("Weather sync failed", err);
+            }
+        });
+    }
+}
+
+// --- NEW INTELLIGENCE LAYER: AI MAP NAVIGATION ---
+let mainMap;
+function initMap() {
+    mainMap = L.map('map', {
+        center: [20, 0],
+        zoom: 2,
+        zoomControl: false,
+        attributionControl: false
+    });
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mainMap);
+    
+    // Add custom zoom control at bottom right
+    L.control.zoom({ position: 'bottomright' }).addTo(mainMap);
+}
+
+function addLog(text, isAI = true) {
+    const log = document.getElementById('co-pilot-log');
+    const div = document.createElement('div');
+    div.className = isAI ? "text-frontier-indigo" : "text-white/60";
+    div.innerHTML = `<span class="text-frontier-lime font-bold">${isAI ? '>' : ''}</span> ${text}`;
+    log.appendChild(div);
+    log.scrollTop = log.scrollHeight;
+}
+
+async function navCommand() {
+    const input = document.getElementById('co-pilot-input');
+    const query = input.value.trim();
+    if (!query) return;
+
+    addLog(query, false);
+    input.value = '';
+    
+    addLog("PROCESSING VECTOR...");
+    
+    try {
+        const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`);
+        const data = await response.json();
+        
+        if (data && data.length > 0) {
+            const { lat, lon, display_name } = data[0];
+            const nameShort = display_name.split(',')[0];
+            
+            addLog(`SYNC FOUND: ${nameShort.toUpperCase()}`);
+            addLog(`FLYING TO COORDINATES [${parseFloat(lat).toFixed(4)}, ${parseFloat(lon).toFixed(4)}]`);
+            
+            mainMap.flyTo([lat, lon], 12, {
+                animate: true,
+                duration: 2.5
+            });
+
+            // Add a temporary beacon marker
+            const marker = L.circleMarker([lat, lon], {
+                color: '#ceee93',
+                fillColor: '#ceee93',
+                fillOpacity: 0.5,
+                radius: 10
+            }).addTo(mainMap);
+            
+            setTimeout(() => marker.remove(), 5000);
+
+        } else {
+            addLog("ERROR: DESTINATION NOT FOUND IN GLOBAL GRID.");
+        }
+    } catch (err) {
+        addLog("CRITICAL: DATA SYNC INTERRUPTED.");
+    }
+}
+
 function handleKeyPress(e) {
-    if (e.key === 'Enter') sendMessage();
+    if (e.key === 'Enter') {
+        if (document.activeElement.id === 'chat-input') sendMessage();
+        if (document.activeElement.id === 'co-pilot-input') navCommand();
+    }
 }
 
 function appendMessage(text, sender) {
@@ -592,6 +761,10 @@ document.addEventListener("DOMContentLoaded", () => {
     document.querySelectorAll('.scroll-reveal, .scroll-slide-left, .scroll-slide-right, .scroll-scale-up').forEach(el => {
         observer.observe(el);
     });
+
+    // 2.5 INITIALIZE INTELLIGENCE LAYERS
+    initWeather();
+    initMap();
 
     // 3. BUTTERY SMOOTH LERP SCROLL PHYSICS
     // We use requestAnimationFrame and a linear interpolation (lerp) function

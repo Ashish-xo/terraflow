@@ -338,21 +338,29 @@
 </button>
 </div>
 <style>
-/* Scroll Animation Classes */
-.scroll-fade-in {
+/* Cinematic Scroll Animation Classes */
+.scroll-reveal {
     opacity: 0;
-    transform: translateY(40px) scale(0.98);
-    transition: all 1s cubic-bezier(0.16, 1, 0.3, 1);
+    transform: translateY(80px) scale(0.95);
+    transition: all 1.2s cubic-bezier(0.22, 1, 0.36, 1);
+    will-change: transform, opacity;
 }
 .scroll-slide-left {
     opacity: 0;
-    transform: translateX(-50px);
-    transition: all 1s cubic-bezier(0.16, 1, 0.3, 1);
+    transform: translateX(-100px);
+    transition: all 1.2s cubic-bezier(0.22, 1, 0.36, 1);
+    will-change: transform, opacity;
 }
 .scroll-slide-right {
     opacity: 0;
-    transform: translateX(50px);
-    transition: all 1s cubic-bezier(0.16, 1, 0.3, 1);
+    transform: translateX(100px);
+    transition: all 1.2s cubic-bezier(0.22, 1, 0.36, 1);
+    will-change: transform, opacity;
+}
+.scroll-scale-up {
+    opacity: 0;
+    transform: scale(0.8);
+    transition: all 1.4s cubic-bezier(0.22, 1, 0.36, 1);
 }
 .is-visible {
     opacity: 1 !important;
@@ -364,93 +372,138 @@
     top: 6rem;
     z-index: 20;
 }
+/* Navbar dynamic styles */
+.nav-scrolled {
+    background: rgba(7, 13, 31, 0.95) !important;
+    backdrop-filter: blur(24px) !important;
+    padding-top: 0.5rem !important;
+    padding-bottom: 0.5rem !important;
+    border-bottom: 1px solid rgba(163, 166, 255, 0.2);
+}
 </style>
 <script>
 document.addEventListener("DOMContentLoaded", () => {
-    // 1. DYNAMICALLY ADD CLASSES
+    // 1. DYNAMICALLY ADD CLASSES ACROSS THE PAGE
     
-    // Make Features Grid columns sticky and sliding
+    // Make Features Grid columns sticky and sliding with delays
     const bentoGrid = document.querySelector('.grid.md\\:grid-cols-3');
     if (bentoGrid) {
         bentoGrid.classList.add('items-start', 'relative');
         
-        // Col 1
-        const weatherFeature = bentoGrid.children[0];
-        if (weatherFeature) {
-            weatherFeature.classList.add('sticky-column', 'scroll-slide-left');
+        if (bentoGrid.children[0]) {
+            bentoGrid.children[0].classList.add('sticky-column', 'scroll-slide-left');
+            bentoGrid.children[0].style.transitionDelay = "0ms";
         }
-        
-        // Col 2
-        const hotelFeature = bentoGrid.children[1];
-        if (hotelFeature) hotelFeature.classList.add('scroll-slide-right');
-        
-        // Col 3
-        const transitFeature = bentoGrid.children[2];
-        if (transitFeature) transitFeature.classList.add('scroll-fade-in');
+        if (bentoGrid.children[1]) {
+            bentoGrid.children[1].classList.add('scroll-slide-right');
+            bentoGrid.children[1].style.transitionDelay = "150ms";
+        }
+        if (bentoGrid.children[2]) {
+            bentoGrid.children[2].classList.add('scroll-reveal');
+            bentoGrid.children[2].style.transitionDelay = "300ms";
+        }
     }
 
-    // Add animation classes to headers and paragraphs
-    document.querySelectorAll('h2, h3, p.tracking-wide').forEach(el => {
-        el.classList.add('scroll-fade-in');
+    // Add animation classes to headers, paragraphs, and buttons
+    document.querySelectorAll('h2, h3, p.tracking-wide').forEach((el, index) => {
+        el.classList.add('scroll-reveal');
+        el.style.transitionDelay = `${(index % 3) * 100}ms`; // Staggered delays
+    });
+    
+    document.querySelectorAll('button').forEach((el, index) => {
+        if (!el.classList.contains('scroll-reveal')) {
+            el.classList.add('scroll-scale-up');
+            el.style.transitionDelay = `${(index % 2) * 150}ms`;
+        }
     });
 
-    // 2. Intersection Observer
+    // 2. Intersection Observer (More sensitive)
     const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
                 entry.target.classList.add('is-visible');
             }
         });
-    }, { threshold: 0.1 });
+    }, { threshold: 0.15, rootMargin: "0px 0px -50px 0px" });
 
-    document.querySelectorAll('.scroll-fade-in, .scroll-slide-left, .scroll-slide-right').forEach(el => {
+    document.querySelectorAll('.scroll-reveal, .scroll-slide-left, .scroll-slide-right, .scroll-scale-up').forEach(el => {
         observer.observe(el);
     });
 
-    // 3. Parallax and Scroll-linked Animations
+    // 3. BUTTERY SMOOTH LERP SCROLL PHYSICS
+    // We use requestAnimationFrame and a linear interpolation (lerp) function
+    // to make the scroll effects feel like native app animations.
+    let currentScrollY = 0;
+    let targetScrollY = window.scrollY;
+    
+    const lerp = (start, end, factor) => start + (end - start) * factor;
+
     const heroImageNodes = document.querySelectorAll('section:nth-of-type(1) img');
     const heroGroup = document.querySelector('section:nth-of-type(1) .z-10');
-    
-    // Find the spinners in Travel Cluster
-    const spinners = document.querySelectorAll('.animate-spin');
+    const spinners = document.querySelectorAll('.grid .relative.w-full.h-full > div.rounded-full');
+    const navbar = document.querySelector('nav');
 
-    // Reset Hero Images to scale 1.15 initially so they have room to parallax
+    // Reset Hero Images to initial scale to allow for parallax zooming
     if(heroImageNodes) {
-        heroImageNodes.forEach(img => img.style.transform = "scale(1.15)");
+        heroImageNodes.forEach(img => {
+            img.style.transformOrigin = "bottom center";
+            img.style.willChange = "transform";
+        });
     }
-    // Remove CSS animation from spinners to allow JS override
+    
     if(spinners) {
         spinners.forEach(spin => {
-            spin.style.animation = "none";
-            spin.style.transition = "transform 0.1s ease-out";
-            // Set initial state back to center
-            spin.style.transform = "translate(-50%, -50%) rotate(0deg)";
+            // Because they are in absolutely positioned containers, we apply rotation cleanly
+            spin.style.willChange = "transform"; 
         });
     }
 
     window.addEventListener('scroll', () => {
-        const scrollY = window.scrollY;
+        targetScrollY = window.scrollY;
         
-        // Hero Image Parallax (moving vertically at different speeds)
-        if (heroImageNodes.length >= 3) {
-            heroImageNodes[0].style.transform = `scale(1.15) translateY(${scrollY * 0.4}px)`;
-            heroImageNodes[1].style.transform = `scale(1.15) translateY(${scrollY * 0.25}px)`;
-            heroImageNodes[2].style.transform = `scale(1.15) translateY(${scrollY * 0.55}px)`;
-        }
-        
-        // Fade out and translate the main hero text as you scroll down
-        if (heroGroup) {
-            heroGroup.style.transform = `translateY(${scrollY * -0.2}px)`;
-            heroGroup.style.opacity = Math.max(1 - scrollY / 400, 0);
-        }
-
-        // Scroll-linked rotation for the circular nodes in "The Travel Cluster"
-        if (spinners.length >= 2) {
-            spinners[0].style.transform = `translate(-50%, -50%) rotate(${scrollY * 0.12}deg)`;
-            spinners[1].style.transform = `translate(-50%, -50%) rotate(${scrollY * -0.18}deg)`;
+        // Navbar snappy change
+        if (navbar) {
+            if (targetScrollY > 50) {
+                navbar.classList.add('nav-scrolled');
+            } else {
+                navbar.classList.remove('nav-scrolled');
+            }
         }
     });
 
+    const renderLoop = () => {
+        // Calculate the smoothed scroll position
+        currentScrollY = lerp(currentScrollY, targetScrollY, 0.08);
+        
+        // Hero Image Parallax (Moving vertically + scaling down for a zoom-out effect)
+        if (heroImageNodes.length >= 3) {
+            const scale1 = Math.max(1.3 - currentScrollY * 0.0005, 1.0);
+            const scale2 = Math.max(1.2 - currentScrollY * 0.0003, 1.0);
+            const scale3 = Math.max(1.4 - currentScrollY * 0.0006, 1.0);
+            
+            heroImageNodes[0].style.transform = `scale(${scale1}) translateY(${currentScrollY * 0.15}px)`;
+            heroImageNodes[1].style.transform = `scale(${scale2}) translateY(${currentScrollY * 0.05}px)`;
+            heroImageNodes[2].style.transform = `scale(${scale3}) translateY(${currentScrollY * 0.25}px)`;
+        }
+        
+        // Parallax and fade for main hero title
+        if (heroGroup) {
+            heroGroup.style.transform = `translateY(${currentScrollY * -0.3}px)`;
+            heroGroup.style.opacity = Math.max(1 - currentScrollY / 500, 0);
+        }
+
+        // Smooth continuous rotation linked to scroll for UI Rings
+        if (spinners.length >= 2) {
+            // Apply the spinning rotation on top of their positioning
+            spinners[0].style.transform = `translate(-50%, -50%) rotate(${currentScrollY * 0.25}deg)`;
+            spinners[1].style.transform = `translate(-50%, -50%) rotate(${currentScrollY * -0.35}deg)`;
+        }
+
+        requestAnimationFrame(renderLoop);
+    };
+
+    // Start the physics loop
+    renderLoop();
 });
 </script>
 </body></html>

@@ -212,7 +212,7 @@
 </div>
 <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
 <!-- Weather Feature -->
-<div class="md:col-span-1 glass-frontier p-8 flex flex-col justify-between group hover:border-frontier-indigo transition-all border border-frontier-indigo/10" id="live-weather-card">
+<div class="md:col-span-1 glass-frontier p-8 flex flex-col justify-between group hover:border-frontier-indigo transition-all border border-frontier-indigo/10 cursor-pointer" id="live-weather-card" onclick="showWeatherForecast()">
 <div class="flex justify-between items-start">
 <span class="material-symbols-outlined text-4xl text-frontier-indigo" id="weather-icon" data-icon="cloudy_snowing">cloudy_snowing</span>
 <div class="text-right">
@@ -514,7 +514,15 @@ function toggleChat() {
 
 function openModal(title, msg) {
     document.getElementById('modal-title').innerText = title;
-    document.getElementById('modal-message').innerText = msg;
+    
+    const msgEl = document.getElementById('modal-message');
+    // Check if the message is HTML (contains tags) or just text
+    if (msg.includes('<')) {
+        msgEl.innerHTML = msg;
+    } else {
+        msgEl.innerText = msg;
+    }
+    
     const modal = document.getElementById('hud-modal');
     modal.classList.remove('hidden');
     modal.classList.add('flex');
@@ -535,13 +543,19 @@ function closeModal() {
 }
 
 // --- NEW INTELLIGENCE LAYER: REAL-TIME WEATHER ---
+let hourlyForecastData = null;
+
 async function initWeather() {
     if ("geolocation" in navigator) {
         navigator.geolocation.getCurrentPosition(async (position) => {
             const { latitude, longitude } = position.coords;
             try {
-                const response = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true`);
+                const response = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true&hourly=temperature_2m,weathercode`);
                 const data = await response.json();
+                
+                // Store hourly data for the interactive modal
+                hourlyForecastData = data.hourly;
+                
                 const { temperature, weathercode } = data.current_weather;
                 
                 const tempEl = document.getElementById('weather-temp');
@@ -551,23 +565,67 @@ async function initWeather() {
                 const weatherDesc = document.getElementById('weather-desc');
                 const weatherIcon = document.getElementById('weather-icon');
                 
-                if (weathercode <= 3) {
-                    weatherIcon.innerText = "sunny";
-                    weatherDesc.innerText = "Clear skies and optimal traveling conditions in your area.";
-                } else if (weathercode >= 61) {
-                    weatherIcon.innerText = "rainy";
-                    weatherDesc.innerText = "Wet weather ahead. Proceed with caution and enjoy the vibe.";
-                } else {
-                    weatherIcon.innerText = "cloudy";
-                    weatherDesc.innerText = "Partial cloud cover. Comfortable for outdoor exploration.";
-                }
+                updateWeatherUI(weathercode, weatherIcon, weatherDesc);
                 
-                document.getElementById('weather-desc').innerText += " (Live Sync)";
+                document.getElementById('weather-desc').innerText += " (Click for 12hr forecast)";
             } catch (err) {
                 console.error("Weather sync failed", err);
             }
         });
     }
+}
+
+function updateWeatherUI(code, iconEl, descEl) {
+    if (code <= 3) {
+        iconEl.innerText = "sunny";
+        if(descEl) descEl.innerText = "Clear skies and optimal traveling conditions in your area.";
+    } else if (code >= 61) {
+        iconEl.innerText = "rainy";
+        if(descEl) descEl.innerText = "Wet weather ahead. Proceed with caution and enjoy the vibe.";
+    } else {
+        iconEl.innerText = "cloudy";
+        if(descEl) descEl.innerText = "Partial cloud cover. Comfortable for outdoor exploration.";
+    }
+}
+
+function showWeatherForecast() {
+    if (!hourlyForecastData) {
+        openModal("Syncing Data", "We are still retrieving the latest atmospheric telemetry. Please wait a moment...");
+        return;
+    }
+
+    const now = new Date();
+    const currentHour = now.getHours();
+    
+    let forecastHTML = `<div class="grid grid-cols-4 gap-4 mt-4">`;
+    
+    // Get next 12 hours
+    for (let i = 0; i < 12; i++) {
+        const hourIdx = (currentHour + i) % 24;
+        const temp = Math.round(hourlyForecastData.temperature_2m[currentHour + i]);
+        const code = hourlyForecastData.weathercode[currentHour + i];
+        
+        let icon = "cloudy";
+        if (code <= 3) icon = "sunny";
+        else if (code >= 61) icon = "rainy";
+
+        forecastHTML += `
+            <div class="flex flex-col items-center p-2 border border-frontier-indigo/10 bg-frontier-deep/50 rounded">
+                <span class="text-[9px] text-frontier-indigo/60 mb-1">${(currentHour + i) % 24}:00</span>
+                <span class="material-symbols-outlined text-lg text-frontier-lime mb-1">${icon}</span>
+                <span class="text-xs font-bold text-white">${temp}°</span>
+            </div>
+        `;
+    }
+    forecastHTML += `</div>`;
+
+    openModal("12-Hour Forecast", `
+        <div class="text-left">
+            <p class="text-[10px] text-frontier-lime tracking-widest mb-4">ATMOSPHERIC PROJECTION // LOCAL_TIME</p>
+            ${forecastHTML}
+            <p class="mt-6 text-[9px] text-frontier-text italic">Data synchronized via Open-Meteo Global Satellite Grid.</p>
+        </div>
+    `);
 }
 
 // --- NEW INTELLIGENCE LAYER: AI MAP NAVIGATION ---

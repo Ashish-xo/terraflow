@@ -127,10 +127,10 @@
                 Experience the world not as a list of destinations, but as a continuous stream of synchronized data.
             </p>
 <div class="flex flex-col md:flex-row gap-6 justify-center">
-<button class="bg-frontier-indigo text-frontier-deep px-12 py-4 font-bold uppercase tracking-widest hover:scale-105 active:scale-95 transition-all duration-300 neon-glow-indigo">
+<button onclick="openModal('Mission Initialization', 'Establishing secure neural link to field agents. Stand by...')" class="bg-frontier-indigo text-frontier-deep px-12 py-4 font-bold uppercase tracking-widest hover:scale-105 active:scale-95 transition-all duration-300 neon-glow-indigo">
                     Initiate Mission
                 </button>
-<button class="border border-frontier-indigo text-frontier-indigo px-12 py-4 font-bold uppercase tracking-widest hover:bg-frontier-indigo/10 transition-all duration-300">
+<button onclick="openModal('Secure Feed', 'Decrypting live video streams from orbital assets. Clearance level verified.')" class="border border-frontier-indigo text-frontier-indigo px-12 py-4 font-bold uppercase tracking-widest hover:bg-frontier-indigo/10 transition-all duration-300">
                     Live Feed [SECURE]
                 </button>
 </div>
@@ -198,10 +198,10 @@
 <p class="font-body text-frontier-text uppercase tracking-widest text-sm">System updates synchronized to your current vector.</p>
 </div>
 <div class="flex gap-4">
-<button class="w-12 h-12 border border-frontier-indigo/30 flex items-center justify-center text-frontier-indigo hover:bg-frontier-indigo hover:text-frontier-deep transition-all">
+<button onclick="openModal('System Override', 'Manual navigation not permitted in auto-sync mode.')" class="w-12 h-12 border border-frontier-indigo/30 flex items-center justify-center text-frontier-indigo hover:bg-frontier-indigo hover:text-frontier-deep transition-all">
 <span class="material-symbols-outlined">arrow_back</span>
 </button>
-<button class="w-12 h-12 border border-frontier-indigo/30 flex items-center justify-center text-frontier-indigo hover:bg-frontier-indigo hover:text-frontier-deep transition-all">
+<button onclick="openModal('System Override', 'Manual navigation not permitted in auto-sync mode.')" class="w-12 h-12 border border-frontier-indigo/30 flex items-center justify-center text-frontier-indigo hover:bg-frontier-indigo hover:text-frontier-deep transition-all">
 <span class="material-symbols-outlined">arrow_forward</span>
 </button>
 </div>
@@ -262,7 +262,7 @@
 <div class="mt-20">
 <h3 class="text-2xl font-headline font-black uppercase mb-2">Invisible Maps</h3>
 <p class="text-frontier-deep/80 text-sm font-bold uppercase tracking-wide">Follow encrypted threads left by the community, beyond the standard grid.</p>
-<button class="mt-6 flex items-center gap-2 group-hover:translate-x-2 transition-transform">
+<button onclick="openModal('Wayfinding Protocol', 'Loading encrypted community threads to your local HUD. Data sync in progress...')" class="mt-6 flex items-center gap-2 group-hover:translate-x-2 transition-transform">
 <span class="font-black text-xs uppercase tracking-widest">Access Map</span>
 <span class="material-symbols-outlined text-sm">trending_flat</span>
 </button>
@@ -331,11 +331,64 @@
 <p>BUILT FOR THE DEEP FRONTIER.</p>
 </div>
 </footer>
-<!-- FAB -->
-<div class="fixed bottom-8 right-8 z-40">
-<button class="w-16 h-16 bg-frontier-lime text-frontier-deep shadow-2xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all duration-300 neon-glow-lime">
-<span class="material-symbols-outlined text-3xl font-black">add</span>
-</button>
+<!-- Chat & FAB Area -->
+<div class="fixed bottom-8 right-8 z-50 flex flex-col items-end">
+    <!-- Chat Widget Panel (Hidden by default) -->
+    <div id="ai-chat-widget" class="hidden w-80 sm:w-96 glass-frontier shadow-2xl mb-4 overflow-hidden border border-frontier-indigo/30 transition-all duration-300 origin-bottom-right">
+        <!-- Header -->
+        <div class="bg-[#11192e]/90 p-4 border-b border-frontier-indigo/20 flex justify-between items-center">
+            <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-frontier-lime text-xl" style="font-variation-settings: 'FILL' 1;">forum</span>
+                <h3 class="font-bold text-white uppercase tracking-widest text-sm">Comms Hub</h3>
+            </div>
+            <button onclick="toggleChat()" class="text-frontier-text hover:text-white transition-colors">
+                <span class="material-symbols-outlined text-sm">close</span>
+            </button>
+        </div>
+        <!-- Messages Area -->
+        <div id="chat-messages" class="h-64 sm:h-80 overflow-y-auto p-4 space-y-4 bg-frontier-deep/70 text-sm font-['Space_Grotesk'] scroll-smooth">
+            <div class="flex gap-3">
+                <span class="material-symbols-outlined text-frontier-lime mt-1 text-lg">smart_toy</span>
+                <div class="bg-[#11192e]/80 border border-frontier-indigo/20 rounded-sm p-3 text-frontier-text shadow-lg">
+                    <p class="uppercase tracking-wide text-xs leading-relaxed">System initialized. Tag <span class="text-frontier-lime font-bold">@ai</span> to access intelligence layer.</p>
+                </div>
+            </div>
+        </div>
+        <!-- Input Area -->
+        <div class="p-3 border-t border-frontier-indigo/20 bg-[#11192e]/90 flex items-center gap-2">
+            <input id="chat-input" type="text" placeholder="TRANSMIT MESSAGE..." class="flex-1 bg-frontier-deep border border-frontier-indigo/30 rounded-sm px-3 py-2 text-xs text-white placeholder-frontier-text focus:outline-none focus:border-frontier-lime uppercase tracking-[0.2em]" onkeypress="handleKeyPress(event)"/>
+            <button onclick="sendMessage()" class="w-10 h-10 bg-frontier-indigo/20 hover:bg-frontier-indigo hover:text-frontier-deep border border-frontier-indigo/40 rounded-sm flex items-center justify-center text-frontier-indigo transition-all">
+                <span class="material-symbols-outlined text-sm">send</span>
+            </button>
+        </div>
+    </div>
+    
+    <!-- FAB Toggle Button -->
+    <button onclick="toggleChat()" class="w-16 h-16 bg-frontier-indigo text-frontier-deep shadow-[0_0_20px_rgba(163,166,255,0.4)] rounded-full flex items-center justify-center hover:scale-110 active:scale-95 transition-all duration-300">
+        <span id="fab-icon" class="material-symbols-outlined text-3xl font-black">forum</span>
+    </button>
+</div>
+
+<!-- Universial Modal Overlay -->
+<div id="hud-modal" class="fixed inset-0 z-[100] hidden items-center justify-center bg-frontier-deep/90 backdrop-blur-md opacity-0 transition-opacity duration-300">
+    <div class="glass-frontier p-8 border border-frontier-lime/30 w-[90%] max-w-md shadow-[0_0_30px_rgba(206,238,147,0.1)] relative scale-95 transition-transform duration-300" id="hud-modal-content">
+        <button onclick="closeModal()" class="absolute top-4 right-4 text-frontier-text hover:text-white transition-colors">
+            <span class="material-symbols-outlined">close</span>
+        </button>
+        <div class="flex items-center gap-4 mb-6 pb-4 border-b border-frontier-indigo/20">
+            <span class="material-symbols-outlined text-4xl text-frontier-lime neon-glow-lime" style="font-variation-settings: 'FILL' 1;">vpn_key</span>
+            <div>
+                <h2 id="modal-title" class="font-headline font-black text-2xl text-white uppercase tracking-widest">System Access</h2>
+                <div class="text-[10px] text-frontier-lime tracking-[0.3em] uppercase border-l border-frontier-lime pl-2 mt-1">Auth_Req</div>
+            </div>
+        </div>
+        <p id="modal-message" class="text-frontier-text text-sm uppercase tracking-wider mb-8 leading-relaxed border-l-2 border-frontier-indigo/30 pl-4 py-2">
+            ...
+        </p>
+        <button onclick="closeModal()" class="w-full bg-frontier-indigo/10 border border-frontier-indigo text-frontier-indigo py-3 font-bold uppercase tracking-widest hover:bg-frontier-indigo hover:text-frontier-deep transition-all duration-300">
+            Acknowledge
+        </button>
+    </div>
 </div>
 <style>
 /* Cinematic Scroll Animation Classes */
@@ -382,6 +435,116 @@
 }
 </style>
 <script>
+// --- GLOBAL UI FUNCTIONS ---
+function toggleChat() {
+    const chatWidget = document.getElementById('ai-chat-widget');
+    const fabIcon = document.getElementById('fab-icon');
+    if (chatWidget.classList.contains('hidden')) {
+        chatWidget.classList.remove('hidden');
+        chatWidget.classList.add('flex', 'flex-col');
+        fabIcon.innerText = "close";
+        setTimeout(() => document.getElementById('chat-input').focus(), 100);
+    } else {
+        chatWidget.classList.add('hidden');
+        chatWidget.classList.remove('flex', 'flex-col');
+        fabIcon.innerText = "forum";
+    }
+}
+
+function openModal(title, msg) {
+    document.getElementById('modal-title').innerText = title;
+    document.getElementById('modal-message').innerText = msg;
+    const modal = document.getElementById('hud-modal');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    setTimeout(() => {
+        modal.classList.remove('opacity-0');
+        document.getElementById('hud-modal-content').classList.remove('scale-95');
+    }, 10);
+}
+
+function closeModal() {
+    const modal = document.getElementById('hud-modal');
+    modal.classList.add('opacity-0');
+    document.getElementById('hud-modal-content').classList.add('scale-95');
+    setTimeout(() => {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }, 300);
+}
+
+function handleKeyPress(e) {
+    if (e.key === 'Enter') sendMessage();
+}
+
+function appendMessage(text, sender) {
+    const chatMessages = document.getElementById('chat-messages');
+    const msgDiv = document.createElement('div');
+    msgDiv.className = "flex gap-3 " + (sender === 'user' ? "flex-row-reverse" : "");
+    
+    let iconHTML = '';
+    if (sender === 'user') {
+        iconHTML = `<div class="w-6 h-6 rounded border border-frontier-indigo/50 flex-shrink-0 opacity-80 overflow-hidden"><img src="https://lh3.googleusercontent.com/aida-public/AB6AXuA3ALzx01r-awRGOh7Dsk-AcsxbAfyhkqvV9r6NX4ha6YT6myF_FNHcqcqtsOTTDnEExCuYsI6vU6JzT8MqjQJrzsnUHuQY_Ysk42SvP0ZK4AkFSYXoVDMLVGa2gm1slf0mv6R3SVO4JoOlfj8tk73XmTZ4oOJjMZu9a4oTH4LQwkjh4peFxcfOtRAPPZhxfGCSEA2RUQqGvpP91S0b1M0HjSnGQRETZx2ez3GYq8RaEyYMc4ZyTGT9IKHB_8d2FrvioVC01p5PVxxx" class="w-full h-full object-cover"/></div>`;
+    } else {
+        iconHTML = `<span class="material-symbols-outlined text-frontier-lime mt-1 text-lg flex-shrink-0 backdrop-blur-md">smart_toy</span>`;
+    }
+
+    const bubbleClass = sender === 'user' 
+        ? "bg-frontier-indigo/20 border border-frontier-indigo/40 p-3 text-white w-full border-r-2 border-r-frontier-indigo"
+        : "bg-[#11192e]/80 border border-frontier-lime/20 shadow-lg p-3 text-frontier-lime font-bold border-l-2 border-l-frontier-lime";
+
+    msgDiv.innerHTML = `
+        ${iconHTML}
+        <div class="${bubbleClass}">
+            <p class="uppercase tracking-[0.1em] text-[11px] leading-relaxed">${text}</p>
+        </div>
+    `;
+    
+    chatMessages.appendChild(msgDiv);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+function sendMessage() {
+    const input = document.getElementById('chat-input');
+    const text = input.value.trim();
+    if (!text) return;
+    
+    appendMessage(text, 'user');
+    input.value = '';
+    
+    if (text.toLowerCase().includes('@ai')) {
+        const typingId = 'typing-' + Date.now();
+        const chatMessages = document.getElementById('chat-messages');
+        const typingDiv = document.createElement('div');
+        typingDiv.id = typingId;
+        typingDiv.className = "flex gap-2 text-frontier-lime/50 text-[10px] uppercase font-bold tracking-[0.2em] animate-pulse ml-9";
+        typingDiv.innerHTML = "Processing data layer...";
+        chatMessages.appendChild(typingDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+
+        setTimeout(() => {
+            const el = document.getElementById(typingId);
+            if(el) el.remove();
+            
+            let response = "COMMAND ACKNOWLEDGED. NO SPECIFIC PARAMETERS WERE DETECTED IN YOUR REQUEST. PLEASE SPECIFY A QUERY.";
+            const lowerText = text.toLowerCase();
+            
+            if (lowerText.includes('weather') || lowerText.includes('climate')) {
+                response = "ATMOSPHERIC UPDATE: Current location reads 24°C with mild wind shear. Optimal for deployment.";
+            } else if (lowerText.includes('mission') || lowerText.includes('route') || lowerText.includes('map')) {
+                response = "CALCULATING VECTOR: Waypoint verified. Adjusting route algorithms to avoid crowd swell in sector 4.";
+            } else if (lowerText.includes('hello') || lowerText.includes('hi')) {
+                response = "SYSTEM ONLINE. HOW CAN I ASSIST YOUR EXPEDITION, COMMANDER?";
+            } else if (lowerText.includes('hotel') || lowerText.includes('shelter') || lowerText.includes('stay')) {
+                response = "SECURE SHELTER: Analyzing localized network. Safehouses are operational and waiting down-range.";
+            } else if (lowerText.includes('who are you') || lowerText.includes('what are you')) {
+                response = "I AM THE TERRAFLOW INTELLIGENCE LAYER. I SYNCHRONIZE GLOBAL TRAVEL TELEMETRY FOR YOUR FIELD OPERATIONS.";
+            }
+            
+            appendMessage(response, 'ai');
+        }, 1500);
+    }
+}
 document.addEventListener("DOMContentLoaded", () => {
     // 1. DYNAMICALLY ADD CLASSES ACROSS THE PAGE
     

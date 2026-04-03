@@ -131,7 +131,7 @@
                 Experience the world with a smart travel companion that adapts to your unique preferences and keeps you connected.
             </p>
 <div class="flex flex-col md:flex-row gap-6 justify-center">
-<button onclick="openModal('Start Planning', 'Opening your personalized itinerary builder. Please wait...')" class="bg-frontier-indigo text-frontier-deep px-12 py-4 font-bold uppercase tracking-widest hover:scale-105 active:scale-95 transition-all duration-300 neon-glow-indigo">
+<button onclick="openBudgetModal()" class="bg-frontier-indigo text-frontier-deep px-12 py-4 font-bold uppercase tracking-widest hover:scale-105 active:scale-95 transition-all duration-300 neon-glow-indigo">
                     Start Planning
                 </button>
 <button onclick="openModal('Live Updates', 'Connecting to current travel conditions in your area. Please wait...')" class="border border-frontier-indigo text-frontier-indigo px-12 py-4 font-bold uppercase tracking-widest hover:bg-frontier-indigo/10 transition-all duration-300">
@@ -417,29 +417,34 @@
 <!-- Chat & FAB Area -->
 <div class="fixed bottom-8 right-8 z-50 flex flex-col items-end">
     <!-- Chat Widget Panel (Hidden by default) -->
-    <div id="ai-chat-widget" class="hidden w-80 sm:w-96 glass-frontier shadow-2xl mb-4 overflow-hidden border border-frontier-indigo/30 transition-all duration-300 origin-bottom-right">
+    <div id="ai-chat-widget" class="hidden w-[480px] glass-frontier shadow-2xl mb-4 overflow-hidden border border-frontier-indigo/30 transition-all duration-300 origin-bottom-right">
         <!-- Header -->
         <div class="bg-[#11192e]/90 p-4 border-b border-frontier-indigo/20 flex justify-between items-center">
             <div class="flex items-center gap-2">
                 <span class="material-symbols-outlined text-frontier-lime text-xl" style="font-variation-settings: 'FILL' 1;">forum</span>
                 <h3 class="font-bold text-white uppercase tracking-widest text-sm">Comms Hub</h3>
             </div>
-            <button onclick="toggleChat()" class="text-frontier-text hover:text-white transition-colors">
-                <span class="material-symbols-outlined text-sm">close</span>
-            </button>
+            <div class="flex items-center gap-2">
+                <button onclick="openApiKeyModal()" class="text-frontier-text hover:text-frontier-lime transition-colors" title="AI Settings">
+                    <span class="material-symbols-outlined text-sm">settings</span>
+                </button>
+                <button onclick="toggleChat()" class="text-frontier-text hover:text-white transition-colors">
+                    <span class="material-symbols-outlined text-sm">close</span>
+                </button>
+            </div>
         </div>
         <!-- Messages Area -->
-        <div id="chat-messages" class="h-64 sm:h-80 overflow-y-auto p-4 space-y-4 bg-frontier-deep/70 text-sm font-['Space_Grotesk'] scroll-smooth">
+        <div id="chat-messages" class="h-[450px] overflow-y-auto p-4 space-y-4 bg-frontier-deep/70 text-sm font-['Space_Grotesk'] scroll-smooth">
             <div class="flex gap-3">
                 <span class="material-symbols-outlined text-frontier-lime mt-1 text-lg">smart_toy</span>
                 <div class="bg-[#11192e]/80 border border-frontier-indigo/20 rounded-sm p-3 text-frontier-text shadow-lg">
-                    <p class="uppercase tracking-wide text-xs leading-relaxed">Hi there! Tag <span class="text-frontier-lime font-bold">@ai</span> if you need help planning your trip or checking live updates.</p>
+                    <p class="text-[13px] leading-relaxed">Hi! I'm TerraFlow AI. Tag <span class="text-frontier-lime font-bold">@ai</span> to ask me anything. I work offline with travel data for popular routes. For unlimited intelligence, click the <span class="text-frontier-lime font-bold">⚙ gear</span> icon to add your free Gemini API key.</p>
                 </div>
             </div>
         </div>
         <!-- Input Area -->
         <div class="p-3 border-t border-frontier-indigo/20 bg-[#11192e]/90 flex items-center gap-2">
-            <input id="chat-input" type="text" placeholder="TRANSMIT MESSAGE..." class="flex-1 bg-frontier-deep border border-frontier-indigo/30 rounded-sm px-3 py-2 text-xs text-white placeholder-frontier-text focus:outline-none focus:border-frontier-lime uppercase tracking-[0.2em]" onkeypress="handleKeyPress(event)"/>
+            <input id="chat-input" type="text" placeholder="Transmit message..." class="flex-1 bg-frontier-deep border border-frontier-indigo/30 rounded-sm px-3 py-2 text-[13px] text-white placeholder-frontier-text focus:outline-none focus:border-frontier-lime" onkeypress="handleKeyPress(event)"/>
             <button onclick="sendMessage()" class="w-10 h-10 bg-frontier-indigo/20 hover:bg-frontier-indigo hover:text-frontier-deep border border-frontier-indigo/40 rounded-sm flex items-center justify-center text-frontier-indigo transition-all">
                 <span class="material-symbols-outlined text-sm">send</span>
             </button>
@@ -450,6 +455,27 @@
     <button onclick="toggleChat()" class="w-16 h-16 bg-frontier-indigo text-frontier-deep shadow-[0_0_20px_rgba(163,166,255,0.4)] rounded-full flex items-center justify-center hover:scale-110 active:scale-95 transition-all duration-300">
         <span id="fab-icon" class="material-symbols-outlined text-3xl font-black">forum</span>
     </button>
+</div>
+
+<!-- API Key Settings Modal -->
+<div id="apikey-modal" class="fixed inset-0 z-[250] hidden items-center justify-center bg-frontier-deep/95 backdrop-blur-md opacity-0 transition-opacity duration-300">
+    <div class="glass-frontier p-8 border border-frontier-lime/30 w-[95%] max-w-lg shadow-[0_0_40px_rgba(206,238,147,0.1)] relative scale-95 transition-transform duration-300" id="apikey-modal-content">
+        <button onclick="closeApiKeyModal()" class="absolute top-4 right-4 text-frontier-text hover:text-white transition-colors"><span class="material-symbols-outlined">close</span></button>
+        <div class="flex items-center gap-3 mb-6">
+            <span class="material-symbols-outlined text-frontier-lime text-2xl">key</span>
+            <h3 class="font-headline font-black text-white text-xl uppercase tracking-widest">AI Configuration</h3>
+        </div>
+        <p class="text-frontier-text text-[13px] leading-relaxed mb-4">Enter your free Google Gemini API key to unlock full AI intelligence. Get one free at <a href="https://aistudio.google.com/apikey" target="_blank" class="text-frontier-lime underline hover:text-white">aistudio.google.com/apikey</a></p>
+        <input id="gemini-key-input" type="password" placeholder="Paste your Gemini API key here..." class="w-full bg-frontier-deep border border-frontier-indigo/30 px-4 py-3 text-[13px] text-white placeholder-frontier-text focus:outline-none focus:border-frontier-lime mb-3"/>
+        <div id="apikey-status" class="text-[11px] uppercase tracking-widest mb-4 h-4"></div>
+        <div class="flex gap-3">
+            <button onclick="saveApiKey()" class="flex-1 py-3 bg-frontier-lime/10 border border-frontier-lime/40 text-frontier-lime font-bold text-xs uppercase tracking-widest hover:bg-frontier-lime/20 transition-colors flex items-center justify-center gap-2">
+                <span class="material-symbols-outlined text-sm">save</span> Save Key
+            </button>
+            <button onclick="clearApiKey()" class="py-3 px-4 bg-red-500/10 border border-red-500/30 text-red-400 font-bold text-xs uppercase tracking-widest hover:bg-red-500/20 transition-colors">Clear</button>
+        </div>
+        <p class="text-frontier-text/50 text-[10px] mt-4 leading-relaxed">Without a key, TerraFlow uses its offline travel database. With a key, it connects to Google's Gemini AI for unlimited intelligence.</p>
+    </div>
 </div>
 
 <!-- Weather Forecast Modal (dedicated) -->
@@ -487,6 +513,50 @@
         <button onclick="closeModal()" class="w-full bg-frontier-indigo/10 border border-frontier-indigo text-frontier-indigo py-3 font-bold uppercase tracking-widest hover:bg-frontier-indigo hover:text-frontier-deep transition-all duration-300">
             Acknowledge
         </button>
+    </div>
+</div>
+<div id="budget-modal" class="fixed inset-0 z-[250] hidden items-center justify-center bg-frontier-deep/95 backdrop-blur-md opacity-0 transition-opacity duration-300">
+    <div class="glass-frontier p-8 border border-frontier-indigo/30 w-[95%] max-w-5xl shadow-[0_0_40px_rgba(163,166,255,0.15)] relative scale-95 transition-transform duration-300 max-h-[90vh] overflow-y-auto" id="budget-modal-content">
+        <button onclick="closeBudgetModal()" class="absolute top-4 right-4 text-frontier-text hover:text-white transition-colors">
+            <span class="material-symbols-outlined">close</span>
+        </button>
+        <div class="flex items-center gap-4 mb-8 pb-4 border-b border-frontier-indigo/20">
+            <span class="material-symbols-outlined text-4xl text-frontier-indigo neon-glow-indigo" style="font-variation-settings: 'FILL' 1;">account_balance_wallet</span>
+            <div>
+                <h2 class="font-headline font-black text-2xl text-white uppercase tracking-widest">AI Travel Budget</h2>
+                <div class="text-[10px] text-frontier-indigo tracking-[0.3em] uppercase border-l border-frontier-indigo pl-2 mt-1">SMART ESTIMATES // GLOBAL DATA</div>
+            </div>
+        </div>
+        
+        <div class="grid md:grid-cols-3 gap-4 mb-4">
+            <div>
+                <label class="text-[10px] uppercase font-bold text-frontier-lime tracking-widest block mb-1 border-l-2 border-frontier-lime pl-2">Origin</label>
+                <input type="text" id="budget-origin" placeholder="e.g. Amritsar" class="w-full bg-[#11192e] border border-frontier-indigo/30 text-white p-3 font-body focus:outline-none focus:border-frontier-indigo transition-colors placeholder-white/30">
+            </div>
+            <div>
+                <label class="text-[10px] uppercase font-bold text-frontier-lime tracking-widest block mb-1 border-l-2 border-frontier-lime pl-2">Destination</label>
+                <input type="text" id="budget-dest" placeholder="e.g. Shimla or Tokyo" class="w-full bg-[#11192e] border border-frontier-indigo/30 text-white p-3 font-body focus:outline-none focus:border-frontier-indigo transition-colors placeholder-white/30">
+            </div>
+            <div>
+                <label class="text-[10px] uppercase font-bold text-frontier-lime tracking-widest block mb-1 border-l-2 border-frontier-lime pl-2">Currency (Optional)</label>
+                <input type="text" id="budget-currency" placeholder="e.g. INR or Both if Intl." class="w-full bg-[#11192e] border border-frontier-indigo/30 text-white p-3 font-body focus:outline-none focus:border-frontier-indigo transition-colors placeholder-white/30">
+            </div>
+        </div>
+        <div class="text-[9px] text-frontier-text uppercase italic mb-8 mt-2 ml-1">* If travelling internationally, leave currency blank to see both origin/destination currencies.</div>
+
+        <button onclick="generateBudget()" id="budget-btn" class="w-full bg-frontier-indigo text-frontier-deep px-6 py-4 font-bold uppercase tracking-widest hover:scale-[1.01] active:scale-[0.99] transition-all duration-300 neon-glow-indigo mb-8 flex items-center justify-center gap-2">
+            <span class="material-symbols-outlined">psychology</span> Generate Intel
+        </button>
+
+        <!-- Loading State -->
+        <div id="budget-loading" class="hidden flex-col items-center justify-center py-16 border border-frontier-indigo/10 bg-[#11192e]/50">
+            <span class="material-symbols-outlined text-5xl text-frontier-lime animate-spin mb-4">settings</span>
+            <div class="text-[10px] text-frontier-lime tracking-[0.3em] font-bold uppercase animate-pulse">Syncing local travel nodes & economic data...</div>
+            <div class="text-[9px] text-frontier-text uppercase mt-2 w-2/3 text-center">Processing community ratings, travel lines, and hotel availability via Neural Link.</div>
+        </div>
+
+        <!-- Output Grid -->
+        <div id="budget-grid" class="hidden grid md:grid-cols-3 gap-6"></div>
     </div>
 </div>
 <style>
@@ -569,6 +639,132 @@
 }
 </style>
 <script>
+// --- AI BUDGET PLANNER ---
+function openBudgetModal() {
+    const modal = document.getElementById('budget-modal');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    setTimeout(() => {
+        modal.classList.remove('opacity-0');
+        document.getElementById('budget-modal-content').classList.remove('scale-95');
+    }, 10);
+}
+
+function closeBudgetModal() {
+    const modal = document.getElementById('budget-modal');
+    modal.classList.add('opacity-0');
+    document.getElementById('budget-modal-content').classList.add('scale-95');
+    setTimeout(() => {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }, 300);
+}
+
+async function generateBudget() {
+    const origin = document.getElementById('budget-origin').value.trim();
+    const dest = document.getElementById('budget-dest').value.trim();
+    const currency = document.getElementById('budget-currency').value.trim();
+    
+    if(!origin || !dest) {
+        alert("Please provide both Origin and Destination.");
+        return;
+    }
+
+    const btn = document.getElementById('budget-btn');
+    const loading = document.getElementById('budget-loading');
+    const grid = document.getElementById('budget-grid');
+    
+    btn.classList.add('hidden');
+    grid.classList.add('hidden');
+    loading.classList.remove('hidden');
+    loading.classList.add('flex');
+    
+    let currencyInstruct = "Use both local currencies (origin currency and destination currency) in the estimations if it is international. E.g. (100 INR / 150 Yen).";
+    if(currency) {
+        currencyInstruct = `Use ${currency} for all prices.`;
+    }
+
+    const prompt = `Return a JSON object containing a travel budget from ${origin} to ${dest}. ${currencyInstruct} The JSON must have exactly 3 keys: "cheapest", "moderate", "expensive". Each key must be an object with these exact keys: "travel_cost" (local travelling prices), "hotel_rating" (like 2-star, 3-star), "hotel_cost" (hotel booking prices), "tickets" (train/flight fee), "food" (food expenses), "total" (total budget). Return ONLY raw JSON, do NOT use markdown or backticks.`;
+    
+    try {
+        let text = null;
+        
+        // Try Gemini API first
+        text = await queryBudgetAI(prompt);
+        
+        // If no Gemini key or failed, use offline estimation
+        if (!text) {
+            const route = findRoute(origin + " " + dest);
+            const dc = TRAVEL_DB.dailyCosts;
+            if (route) {
+                const data = {
+                    "cheapest": { travel_cost: route.busCost || route.trainCost, hotel_rating: "1-2 star / Hostel", hotel_cost: dc.india_budget.hotel + "/night", tickets: route.trainCost, food: dc.india_budget.food + "/day", total: "Approx 2000-4000 INR/day" },
+                    "moderate": { travel_cost: route.trainCost, hotel_rating: "3 star", hotel_cost: dc.india_moderate.hotel + "/night", tickets: route.trainCost, food: dc.india_moderate.food + "/day", total: "Approx 4000-8000 INR/day" },
+                    "expensive": { travel_cost: route.flightCost, hotel_rating: "4-5 star", hotel_cost: dc.india_luxury.hotel + "/night", tickets: route.flightCost, food: dc.india_luxury.food + "/day", total: "Approx 12000-25000 INR/day" }
+                };
+                text = JSON.stringify(data);
+            } else {
+                // Generic fallback
+                const data = {
+                    "cheapest": { travel_cost: "500-1500 INR", hotel_rating: "1-2 star / Hostel", hotel_cost: "500-1000 INR/night", tickets: "800-2500 INR", food: "300-500 INR/day", total: "Approx 2000-5000 INR/day" },
+                    "moderate": { travel_cost: "1000-3000 INR", hotel_rating: "3 star", hotel_cost: "2000-4000 INR/night", tickets: "1500-4000 INR", food: "800-1500 INR/day", total: "Approx 5000-10000 INR/day" },
+                    "expensive": { travel_cost: "3000-8000 INR", hotel_rating: "4-5 star", hotel_cost: "8000-15000 INR/night", tickets: "4000-10000 INR", food: "2000-4000 INR/day", total: "Approx 15000-30000 INR/day" }
+                };
+                text = JSON.stringify(data);
+            }
+        }
+        
+        // Robust JSON extraction
+        const jsonMatch = text.match(/\{[\s\S]*\}/);
+        if(!jsonMatch) throw new Error("Format exception: No JSON struct found.");
+        
+        const data = JSON.parse(jsonMatch[0]);
+        
+        grid.innerHTML = '';
+        const tiers = [
+            { id: 'cheapest', label: 'Backpacker', icon: 'hiking', color: '#a3a6ff', hex: '[#a3a6ff]', bg: 'bg-frontier-indigo/20' },
+            { id: 'moderate', label: 'Standard', icon: 'directions_car', color: '#ceee93', hex: '[#ceee93]', bg: 'bg-frontier-lime/20' },
+            { id: 'expensive', label: 'Luxury', icon: 'flight_takeoff', color: '#ffb3c6', hex: '[#ffb3c6]', bg: 'bg-pink-500/20' }
+        ];
+
+        tiers.forEach(t => {
+            const d = data[t.id];
+            if(d) {
+                grid.innerHTML += `
+                <div class="border border-${t.hex} ${t.bg} p-6 relative group transition-transform duration-300">
+                    <div class="absolute -top-4 -right-4 w-12 h-12 bg-[#11192e] border border-${t.hex} rounded-full flex items-center justify-center shadow-lg">
+                        <span class="material-symbols-outlined" style="color: ${t.color}">${t.icon}</span>
+                    </div>
+                    <h3 class="font-headline font-black text-white text-xl uppercase tracking-widest mb-1">${t.id}</h3>
+                    <div class="text-[10px] text-frontier-text uppercase tracking-widest mb-6">${t.label} Tier</div>
+                    
+                    <div class="space-y-4 mb-8">
+                        <div><div class="text-[9px] text-frontier-text uppercase">Local Travel</div><div class="font-bold text-white text-sm">${d.travel_cost}</div></div>
+                        <div><div class="text-[9px] text-frontier-text uppercase">Hotel (${d.hotel_rating})</div><div class="font-bold text-white text-sm">${d.hotel_cost}</div></div>
+                        <div><div class="text-[9px] text-frontier-text uppercase">Tickets Fee</div><div class="font-bold text-white text-sm">${d.tickets}</div></div>
+                        <div><div class="text-[9px] text-frontier-text uppercase">Food Expenses</div><div class="font-bold text-white text-sm">${d.food}</div></div>
+                    </div>
+                    
+                    <div class="border-t border-${t.hex} pt-4">
+                        <div class="text-[10px] text-frontier-text uppercase tracking-widest mb-1">Total Est.</div>
+                        <div class="font-headline font-black text-2xl" style="color: ${t.color}">${d.total}</div>
+                    </div>
+                </div>`;
+            }
+        });
+        
+    } catch (e) {
+        console.error(e);
+        grid.innerHTML = '<div class="col-span-3 text-red-500 text-center font-bold tracking-widest p-8 border border-red-500/30 bg-red-500/10 uppercase">Data Synchronization Failed. The AI returned an invalid unstructured format. Try regenerating.</div>';
+    } finally {
+        loading.classList.add('hidden');
+        loading.classList.remove('flex');
+        grid.classList.remove('hidden');
+        btn.classList.remove('hidden');
+        btn.innerHTML = '<span class="material-symbols-outlined">refresh</span> Recalculate';
+    }
+}
+
 // --- GLOBAL UI FUNCTIONS ---
 function toggleChat() {
     const chatWidget = document.getElementById('ai-chat-widget');
@@ -582,6 +778,237 @@ function toggleChat() {
         chatWidget.classList.add('hidden');
         chatWidget.classList.remove('flex', 'flex-col');
         fabIcon.innerText = "forum";
+    }
+}
+
+// --- API KEY MANAGEMENT ---
+function openApiKeyModal() {
+    const modal = document.getElementById('apikey-modal');
+    const input = document.getElementById('gemini-key-input');
+    const saved = localStorage.getItem('terraflow_gemini_key');
+    if (saved) input.value = saved;
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    setTimeout(() => {
+        modal.classList.remove('opacity-0');
+        document.getElementById('apikey-modal-content').classList.remove('scale-95');
+    }, 10);
+    updateApiKeyStatus();
+}
+
+function closeApiKeyModal() {
+    const modal = document.getElementById('apikey-modal');
+    modal.classList.add('opacity-0');
+    document.getElementById('apikey-modal-content').classList.add('scale-95');
+    setTimeout(() => {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }, 300);
+}
+
+function saveApiKey() {
+    const key = document.getElementById('gemini-key-input').value.trim();
+    if (key) {
+        localStorage.setItem('terraflow_gemini_key', key);
+        updateApiKeyStatus();
+        setTimeout(() => closeApiKeyModal(), 800);
+    }
+}
+
+function clearApiKey() {
+    localStorage.removeItem('terraflow_gemini_key');
+    document.getElementById('gemini-key-input').value = '';
+    updateApiKeyStatus();
+}
+
+function updateApiKeyStatus() {
+    const el = document.getElementById('apikey-status');
+    const key = localStorage.getItem('terraflow_gemini_key');
+    if (key) {
+        el.innerHTML = '<span class="text-frontier-lime">Connected to Gemini AI</span>';
+    } else {
+        el.innerHTML = '<span class="text-yellow-400">Offline mode — using local travel database</span>';
+    }
+}
+
+// --- OFFLINE TRAVEL INTELLIGENCE DATABASE ---
+const TRAVEL_DB = {
+    routes: {
+        "amritsar_udaipur": { distance: "980 km", train: "18-22 hours (via Delhi/Jaipur)", trainCost: "800-2500 INR", bus: "16-20 hours", busCost: "900-1800 INR", flight: "3-4 hours (1 stop)", flightCost: "4000-8000 INR" },
+        "amritsar_shimla": { distance: "260 km", train: "8-10 hours (via Kalka)", trainCost: "350-1200 INR", bus: "6-8 hours", busCost: "400-800 INR", flight: "N/A (nearest Chandigarh)", flightCost: "3000-5000 INR" },
+        "amritsar_delhi": { distance: "450 km", train: "6-8 hours", trainCost: "400-1800 INR", bus: "7-9 hours", busCost: "500-1200 INR", flight: "1.5 hours", flightCost: "3000-6000 INR" },
+        "delhi_mumbai": { distance: "1400 km", train: "16-22 hours", trainCost: "600-3500 INR", bus: "22-26 hours", busCost: "1000-2500 INR", flight: "2 hours", flightCost: "3500-8000 INR" },
+        "delhi_goa": { distance: "1900 km", train: "26-34 hours", trainCost: "800-3000 INR", bus: "28-32 hours", busCost: "1200-2500 INR", flight: "2.5 hours", flightCost: "4000-9000 INR" },
+        "delhi_jaipur": { distance: "280 km", train: "4-5 hours", trainCost: "300-1200 INR", bus: "5-6 hours", busCost: "400-900 INR", flight: "1 hour", flightCost: "2500-5000 INR" },
+        "mumbai_goa": { distance: "590 km", train: "8-12 hours", trainCost: "500-2000 INR", bus: "10-14 hours", busCost: "600-1500 INR", flight: "1.5 hours", flightCost: "2500-6000 INR" },
+        "delhi_manali": { distance: "540 km", train: "14 hours (to Chandigarh+bus)", trainCost: "500-1500 INR", bus: "12-14 hours", busCost: "700-1500 INR", flight: "N/A (via Kullu)", flightCost: "4000-7000 INR" },
+        "bangalore_chennai": { distance: "350 km", train: "5-6 hours", trainCost: "300-1200 INR", bus: "6-7 hours", busCost: "400-1000 INR", flight: "1 hour", flightCost: "2500-5000 INR" },
+        "kolkata_darjeeling": { distance: "600 km", train: "10-12 hours (to NJP)", trainCost: "500-1800 INR", bus: "14-16 hours", busCost: "600-1200 INR", flight: "1 hour (to Bagdogra)", flightCost: "3500-7000 INR" },
+        "amritsar_tokyo": { distance: "6200 km", train: "N/A", trainCost: "N/A", bus: "N/A", busCost: "N/A", flight: "10-14 hours (1-2 stops)", flightCost: "35000-85000 INR / 60000-150000 JPY" },
+        "delhi_bangkok": { distance: "2900 km", train: "N/A", trainCost: "N/A", bus: "N/A", busCost: "N/A", flight: "4 hours", flightCost: "8000-25000 INR / 3500-11000 THB" },
+        "delhi_dubai": { distance: "2200 km", train: "N/A", trainCost: "N/A", bus: "N/A", busCost: "N/A", flight: "3.5 hours", flightCost: "10000-30000 INR / 450-1300 AED" },
+        "mumbai_singapore": { distance: "3900 km", train: "N/A", trainCost: "N/A", bus: "N/A", busCost: "N/A", flight: "5.5 hours", flightCost: "12000-35000 INR / 220-650 SGD" },
+    },
+    dailyCosts: {
+        "india_budget": { hotel: "500-1000 INR", food: "300-500 INR", local: "200-400 INR" },
+        "india_moderate": { hotel: "2000-4000 INR", food: "800-1500 INR", local: "500-1000 INR" },
+        "india_luxury": { hotel: "8000-15000 INR", food: "2000-4000 INR", local: "1500-3000 INR" },
+        "japan_budget": { hotel: "3000-5000 JPY / 1700-2800 INR", food: "1500-3000 JPY / 850-1700 INR", local: "1000-2000 JPY / 570-1130 INR" },
+        "japan_moderate": { hotel: "8000-15000 JPY", food: "3000-6000 JPY", local: "2000-4000 JPY" },
+        "thailand_budget": { hotel: "500-1000 THB / 1200-2400 INR", food: "300-600 THB / 720-1440 INR", local: "200-500 THB / 480-1200 INR" },
+        "dubai_budget": { hotel: "200-400 AED / 4500-9000 INR", food: "80-150 AED / 1800-3400 INR", local: "50-100 AED / 1100-2300 INR" },
+    },
+    tips: [
+        "Book train tickets on IRCTC 2-3 months in advance for the best prices.",
+        "Tatkal tickets open at 10 AM for AC and 11 AM for Sleeper class.",
+        "Use RailYatri or ixigo apps for live train status tracking.",
+        "Budget hotels can be found on OYO, Goibibo, or MakeMyTrip.",
+        "Always carry some cash in smaller towns — UPI may not work everywhere.",
+        "For international travel, book flights on Tuesdays for the best deals.",
+        "Use Google Maps offline mode — download maps before your trip.",
+    ]
+};
+
+function findRoute(text) {
+    const cities = Object.keys(TRAVEL_DB.routes).flatMap(k => k.split('_'));
+    const uniqueCities = [...new Set(cities)];
+    const found = [];
+    const lower = text.toLowerCase();
+    for (const city of uniqueCities) {
+        if (lower.includes(city)) found.push(city);
+    }
+    if (found.length >= 2) {
+        const key1 = found[0] + '_' + found[1];
+        const key2 = found[1] + '_' + found[0];
+        return TRAVEL_DB.routes[key1] || TRAVEL_DB.routes[key2] || null;
+    }
+    return null;
+}
+
+function getOfflineResponse(question) {
+    const q = question.toLowerCase();
+    const route = findRoute(q);
+    
+    if (route) {
+        let response = `Here is what I have in my travel database:\n`;
+        response += `Distance: ${route.distance}\n`;
+        if (route.train !== "N/A") response += `Train: ${route.train} — Cost: ${route.trainCost}\n`;
+        if (route.bus !== "N/A") response += `Bus: ${route.bus} — Cost: ${route.busCost}\n`;
+        response += `Flight: ${route.flight} — Cost: ${route.flightCost}\n`;
+        
+        if (q.includes('budget') || q.includes('expense') || q.includes('cost') || q.includes('stay')) {
+            response += `\nDaily expenses in India:\n`;
+            response += `Budget: Hotel ${TRAVEL_DB.dailyCosts.india_budget.hotel}, Food ${TRAVEL_DB.dailyCosts.india_budget.food}, Local travel ${TRAVEL_DB.dailyCosts.india_budget.local}\n`;
+            response += `Moderate: Hotel ${TRAVEL_DB.dailyCosts.india_moderate.hotel}, Food ${TRAVEL_DB.dailyCosts.india_moderate.food}, Local travel ${TRAVEL_DB.dailyCosts.india_moderate.local}\n`;
+        }
+        
+        const tip = TRAVEL_DB.tips[Math.floor(Math.random() * TRAVEL_DB.tips.length)];
+        response += `\nTip: ${tip}`;
+        response += `\n\nFor more detailed and real-time planning, add your free Gemini API key via the settings gear icon in the chat header.`;
+        return response;
+    }
+    
+    // General travel keywords
+    if (q.includes('budget') || q.includes('cheap') || q.includes('expense')) {
+        return `For budget travel in India: Hotels range from 500-1000 INR/night (hostels/budget), Food costs about 300-500 INR/day at local eateries, Local transport is 200-400 INR/day using buses and autos. For a more personalized budget, configure your Gemini API key via the settings icon.`;
+    }
+    if (q.includes('hotel') || q.includes('stay') || q.includes('accommodation')) {
+        return `Hotel ranges in India: Budget (500-1500 INR), Mid-range (2000-5000 INR), Luxury (8000+ INR). I recommend booking via MakeMyTrip, OYO, or Goibibo for the best deals. Add your Gemini API key for specific hotel recommendations.`;
+    }
+    if (q.includes('train') || q.includes('rail') || q.includes('irctc')) {
+        return `Indian Railways tips: Book on irctc.co.in 120 days in advance for best availability. Tatkal opens at 10 AM (AC) / 11 AM (Sleeper). Classes: Sleeper (cheapest), 3AC, 2AC, 1AC (most expensive). General fare for 500km is roughly 350-2000 INR depending on class.`;
+    }
+    if (q.includes('flight') || q.includes('fly') || q.includes('airplane')) {
+        return `For domestic Indian flights: Book 1-2 months ahead on IndiGo, SpiceJet, or Air India. Average cost is 3000-8000 INR for most routes. International flights from India to SE Asia start around 8000-15000 INR. Book on Tuesdays for the cheapest fares!`;
+    }
+    if (q.includes('food') || q.includes('eat') || q.includes('restaurant')) {
+        return `Food costs in India: Street food 30-100 INR per meal, Local restaurants 100-300 INR, Mid-range restaurants 300-800 INR, Fine dining 1000+ INR. Thalis are the best value — a full meal for 80-200 INR. Always try local specialties!`;
+    }
+    if (q.includes('hello') || q.includes('hi') || q.includes('hey')) {
+        return `Hello! I'm TerraFlow, your travel intelligence assistant. I can help with travel routes, budgets, and tips across India and international destinations. Try asking me about a specific route like "Amritsar to Shimla" or "Delhi to Mumbai". For unlimited AI intelligence, add your free Gemini API key via the gear icon above!`;
+    }
+    
+    return `I'm TerraFlow running in offline mode. I have travel data for popular Indian routes and general travel tips. Try asking about specific routes (e.g., "Delhi to Goa") or topics (hotels, trains, food, budget). For unlimited AI answers on any topic, add your free Gemini API key by clicking the settings gear icon in the chat header — it takes 30 seconds at aistudio.google.com/apikey!`;
+}
+
+// --- GEMINI AI ENGINE ---
+async function queryGemini(prompt) {
+    const apiKey = localStorage.getItem('terraflow_gemini_key');
+    if (!apiKey) return null;
+    
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+    
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000);
+    
+    try {
+        const res = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            signal: controller.signal,
+            body: JSON.stringify({
+                contents: [{
+                    parts: [{ text: "You are TerraFlow, a helpful travel and navigation AI assistant. Give useful detailed answers. For travel questions include realistic times, costs, and practical tips. For budget questions provide detailed price breakdowns with local currency amounts. Keep answers clear, concise, and use plain text only — no markdown, no asterisks, no hashtags. User question: " + prompt }]
+                }],
+                generationConfig: {
+                    maxOutputTokens: 1024,
+                    temperature: 0.7
+                }
+            })
+        });
+        
+        clearTimeout(timeoutId);
+        
+        if (!res.ok) {
+            const errData = await res.json().catch(() => ({}));
+            console.error('Gemini API error:', errData);
+            return null;
+        }
+        
+        const data = await res.json();
+        let text = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+        // Clean any remaining markdown
+        text = text.replace(/\*\*/g, '').replace(/\*/g, '').replace(/#{1,6}\s/g, '').trim();
+        return text || null;
+    } catch(e) {
+        clearTimeout(timeoutId);
+        console.error('Gemini fetch error:', e);
+        return null;
+    }
+}
+
+async function queryAI(prompt) {
+    // Try Gemini first
+    const geminiResponse = await queryGemini(prompt);
+    if (geminiResponse && geminiResponse.length > 5) {
+        return geminiResponse;
+    }
+    // Fallback to offline database
+    return getOfflineResponse(prompt);
+}
+
+// --- GEMINI-POWERED BUDGET PLANNER ---
+async function queryBudgetAI(prompt) {
+    const apiKey = localStorage.getItem('terraflow_gemini_key');
+    if (!apiKey) return null;
+    
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+    
+    try {
+        const res = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                contents: [{ parts: [{ text: prompt }] }],
+                generationConfig: { maxOutputTokens: 1024, temperature: 0.5 }
+            })
+        });
+        
+        if (!res.ok) return null;
+        const data = await res.json();
+        return data?.candidates?.[0]?.content?.parts?.[0]?.text || null;
+    } catch(e) {
+        return null;
     }
 }
 
@@ -641,6 +1068,19 @@ async function initWeather() {
                 updateWeatherUI(weathercode, weatherIcon, weatherDesc);
                 
                 document.getElementById('weather-desc').innerText += " (Click for 12hr forecast)";
+                
+                // Add a small red dot to show the user's current physical location on the map
+                if (typeof mainMap !== 'undefined' && mainMap) {
+                    const userDot = L.circleMarker([latitude, longitude], {
+                        color: '#ff3366',
+                        fillColor: '#ff3366',
+                        fillOpacity: 1,
+                        radius: 4,
+                        weight: 2
+                    }).addTo(mainMap);
+                    userDot.bindPopup('<div style="font-family:\'Space Grotesk\',sans-serif;font-size:10px;font-weight:bold;color:#ff3366;text-align:center;">Current Location</div>', { className: 'custom-popup' });
+                }
+                
             } catch (err) {
                 console.error("Weather sync failed", err);
             }
@@ -905,7 +1345,7 @@ function appendMessage(text, sender) {
     msgDiv.innerHTML = `
         ${iconHTML}
         <div class="${bubbleClass}">
-            <p class="uppercase tracking-[0.1em] text-[11px] leading-relaxed">${text}</p>
+            <p class="text-[13px] leading-relaxed">${text}</p>
         </div>
     `;
     
@@ -913,7 +1353,7 @@ function appendMessage(text, sender) {
     chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 
-function sendMessage() {
+async function sendMessage() {
     const input = document.getElementById('chat-input');
     const text = input.value.trim();
     if (!text) return;
@@ -931,27 +1371,39 @@ function sendMessage() {
         chatMessages.appendChild(typingDiv);
         chatMessages.scrollTop = chatMessages.scrollHeight;
 
-        setTimeout(() => {
+        try {
+            const lowerText = text.toLowerCase();
+            const mathMatch = lowerText.match(/(\d+(?:\.\d+)?)\s*([\+\-\*\/])\s*(\d+(?:\.\d+)?)/);
+            
+            let finalResponse = "";
+
+            // Fast lane for simple offline math
+            if (mathMatch) {
+                const num1 = parseFloat(mathMatch[1]);
+                const operator = mathMatch[2];
+                const num2 = parseFloat(mathMatch[3]);
+                let result = 0;
+                if (operator === '+') result = num1 + num2;
+                if (operator === '-') result = num1 - num2;
+                if (operator === '*') result = num1 * num2;
+                if (operator === '/') result = num1 / num2;
+                
+                finalResponse = `Calculation complete: ${num1} ${operator} ${num2} = ${result}`;
+            } else {
+                const extractedPrompt = text.replace(/@ai/ig, '').trim();
+                finalResponse = await queryAI(extractedPrompt);
+            }
+
             const el = document.getElementById(typingId);
             if(el) el.remove();
             
-            let response = "I'm here to help! Please tell me what you'd like to know.";
-            const lowerText = text.toLowerCase();
-            
-            if (lowerText.includes('weather') || lowerText.includes('climate')) {
-                response = "The weather looks great right now! It's currently 24°C with a gentle breeze—perfect for exploring.";
-            } else if (lowerText.includes('mission') || lowerText.includes('route') || lowerText.includes('map')) {
-                response = "Planning your route now. I'm choosing the best paths to help you avoid crowds and save time.";
-            } else if (lowerText.includes('hello') || lowerText.includes('hi')) {
-                response = "Hello! I'm TerraFlow's travel assistant. How can I help you plan your trip today?";
-            } else if (lowerText.includes('hotel') || lowerText.includes('shelter') || lowerText.includes('stay')) {
-                response = "Looking for places to stay... I found several highly-rated hotels and rentals available in the area.";
-            } else if (lowerText.includes('who are you') || lowerText.includes('what are you')) {
-                response = "I'm your AI travel assistant! I'm here to answer questions, suggest routes, and make your journey as smooth as possible.";
-            }
-            
-            appendMessage(response, 'ai');
-        }, 1500);
+            appendMessage(finalResponse, 'ai');
+
+        } catch (err) {
+            const el = document.getElementById(typingId);
+            if(el) el.remove();
+            appendMessage("Communication error: Unable to retrieve intelligence.", "ai");
+        }
     }
 }
 document.addEventListener("DOMContentLoaded", () => {

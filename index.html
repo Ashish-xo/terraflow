@@ -5,7 +5,7 @@
 <head>
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
-    <title>TerraFlow | Digital Frontier</title>
+    <title>Zentryx | Digital Frontier</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <!-- Google Fonts: Space Grotesk for tech-forward feel -->
@@ -205,7 +205,7 @@
     <!-- TopNavBar (Shared Component) -->
     <nav class="fixed top-0 w-full z-50 bg-[#070d1f]/70 backdrop-blur-xl shadow-[0_0_15px_rgba(163,166,255,0.1)] h-16">
         <div class="flex justify-between items-center px-8 h-full w-full">
-            <div class="text-xl font-bold tracking-widest text-[#a3a6ff]">TERRAFLOW</div>
+            <div class="text-xl font-bold tracking-widest text-[#a3a6ff]">ZENTRYX</div>
             <div class="hidden md:flex items-center space-x-8 font-['Space_Grotesk'] tracking-tight text-sm uppercase">
                 <a class="text-[#ceee93] border-b-2 border-[#ceee93] pb-1" href="#">Explore</a>
                 <a class="text-[#a5aac2] hover:text-[#a3a6ff] transition-colors" href="#">Partners</a>
@@ -732,7 +732,7 @@
                 style="font-variation-settings: 'FILL' 1;">format_quote</span>
             <blockquote
                 class="font-headline font-light text-3xl md:text-5xl text-white leading-tight mb-12 uppercase tracking-tight italic">
-                "TerraFlow didn't just help me plan a trip; it synced my frequency with the world. Every turn felt like
+                "Zentryx didn't just help me plan a trip; it synced my frequency with the world. Every turn felt like
                 a programmed sequence of beauty."
             </blockquote>
             <div class="flex flex-col items-center">
@@ -749,7 +749,7 @@
     <footer class="bg-frontier-navy border-t border-frontier-indigo/10 py-20 px-6">
         <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-12">
             <div class="md:col-span-2">
-                <div class="text-2xl font-black tracking-widest text-frontier-indigo mb-6">TERRAFLOW</div>
+                <div class="text-2xl font-black tracking-widest text-frontier-indigo mb-6">ZENTRYX</div>
                 <p class="text-frontier-text max-w-sm mb-8 leading-relaxed text-sm uppercase tracking-wider">
                     Your trusted platform for seamless global travel. Discover new places and travel with confidence.
                 </p>
@@ -793,7 +793,7 @@
         </div>
         <div
             class="max-w-7xl mx-auto mt-20 pt-8 border-t border-frontier-indigo/5 flex flex-col md:flex-row justify-between items-center gap-4 text-[10px] text-frontier-indigo/40 uppercase tracking-[0.3em] font-black">
-            <p>© 2024 TERRAFLOW. SECURE & PRIVATE.</p>
+            <p>© 2024 ZENTRYX. SECURE & PRIVATE.</p>
             <p>BUILT FOR MODERN TRAVELERS.</p>
         </div>
     </footer>
@@ -826,7 +826,7 @@
                     <span class="material-symbols-outlined text-frontier-lime mt-1 text-lg">smart_toy</span>
                     <div
                         class="bg-[#11192e]/80 border border-frontier-indigo/20 rounded-sm p-3 text-frontier-text shadow-lg">
-                        <p class="text-[13px] leading-relaxed">Hi! I'm TerraFlow AI. Tag <span
+                        <p class="text-[13px] leading-relaxed">Hi! I'm Zentryx AI. Tag <span
                                 class="text-frontier-lime font-bold">@ai</span> to ask me anything. I work offline with
                             travel data for popular routes. For unlimited intelligence, click the <span
                                 class="text-frontier-lime font-bold">⚙ gear</span> icon to add your free Gemini API key.
@@ -880,7 +880,7 @@
                 <button onclick="clearApiKey()"
                     class="py-3 px-4 bg-red-500/10 border border-red-500/30 text-red-400 font-bold text-xs uppercase tracking-widest hover:bg-red-500/20 transition-colors">Clear</button>
             </div>
-            <p class="text-frontier-text/50 text-[10px] mt-4 leading-relaxed">Without a key, TerraFlow uses its offline
+            <p class="text-frontier-text/50 text-[10px] mt-4 leading-relaxed">Without a key, Zentryx uses its offline
                 travel database. With a key, it connects to Google's Gemini AI for unlimited intelligence.</p>
         </div>
     </div>
@@ -1235,7 +1235,7 @@
         function openApiKeyModal() {
             const modal = document.getElementById('apikey-modal');
             const input = document.getElementById('gemini-key-input');
-            const saved = localStorage.getItem('terraflow_gemini_key');
+            const saved = localStorage.getItem('zentryx_gemini_key');
             if (saved) input.value = saved;
             modal.classList.remove('hidden');
             modal.classList.add('flex');
@@ -1259,21 +1259,21 @@
         function saveApiKey() {
             const key = document.getElementById('gemini-key-input').value.trim();
             if (key) {
-                localStorage.setItem('terraflow_gemini_key', key);
+                localStorage.setItem('zentryx_gemini_key', key);
                 updateApiKeyStatus();
                 setTimeout(() => closeApiKeyModal(), 800);
             }
         }
 
         function clearApiKey() {
-            localStorage.removeItem('terraflow_gemini_key');
+            localStorage.removeItem('zentryx_gemini_key');
             document.getElementById('gemini-key-input').value = '';
             updateApiKeyStatus();
         }
 
         function updateApiKeyStatus() {
             const el = document.getElementById('apikey-status');
-            const key = localStorage.getItem('terraflow_gemini_key');
+            const key = localStorage.getItem('zentryx_gemini_key');
             if (key) {
                 el.innerHTML = '<span class="text-frontier-lime">Connected to Gemini AI</span>';
             } else {
@@ -1377,7 +1377,7 @@
 
             // 1. GREETINGS (Higher priority to avoid mis-matching common word fragments)
             if (q.includes('hello') || q.includes('hi') || q.includes('hey') || q === 'hii' || q === 'hi') {
-                return `Hello! I'm TerraFlow, your travel intelligence assistant. I can help with travel routes, budgets, and tips across India and international destinations. Try asking me about a specific route like "Amritsar to Shimla" or "Delhi to Mumbai". For unlimited AI intelligence, add your free Gemini API key via the gear icon above!`;
+                return `Hello! I'm Zentryx, your travel intelligence assistant. I can help with travel routes, budgets, and tips across India and international destinations. Try asking me about a specific route like "Amritsar to Shimla" or "Delhi to Mumbai". For unlimited AI intelligence, add your free Gemini API key via the gear icon above!`;
             }
 
             // 2. Explicit check for advanced topics that need AI
@@ -1424,12 +1424,12 @@
                 return `Food costs in India: Street food 30-100 INR per meal, Local restaurants 100-300 INR, Mid-range restaurants 300-800 INR, Fine dining 1000+ INR. Thalis are the best value — a full meal for 80-200 INR. Always try local specialties!`;
             }
 
-            return `I'm TerraFlow running in offline mode. I have travel data for popular Indian routes and general travel tips. Try asking about specific routes (e.g., "Delhi to Goa") or topics (hotels, trains, food, budget). For unlimited AI answers on any topic, add your free Gemini API key by clicking the settings gear icon in the chat header — it takes 30 seconds at aistudio.google.com/apikey!`;
+            return `I'm Zentryx running in offline mode. I have travel data for popular Indian routes and general travel tips. Try asking about specific routes (e.g., "Delhi to Goa") or topics (hotels, trains, food, budget). For unlimited AI answers on any topic, add your free Gemini API key by clicking the settings gear icon in the chat header — it takes 30 seconds at aistudio.google.com/apikey!`;
         }
 
         // --- GEMINI AI ENGINE ---
         async function queryGemini(prompt) {
-            const apiKey = localStorage.getItem('terraflow_gemini_key');
+            const apiKey = localStorage.getItem('zentryx_gemini_key');
             if (!apiKey) return null;
 
             const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
@@ -1444,7 +1444,7 @@
                     signal: controller.signal,
                     body: JSON.stringify({
                         contents: [{
-                            parts: [{ text: "You are TerraFlow, a helpful travel and navigation AI assistant. Give useful detailed answers. For travel questions include realistic times, costs, and practical tips. For budget questions provide detailed price breakdowns with local currency amounts. Keep answers clear, concise, and use plain text only — no markdown, no asterisks, no hashtags. User question: " + prompt }]
+                            parts: [{ text: "You are Zentryx, a helpful travel and navigation AI assistant. Give useful detailed answers. For travel questions include realistic times, costs, and practical tips. For budget questions provide detailed price breakdowns with local currency amounts. Keep answers clear, concise, and use plain text only — no markdown, no asterisks, no hashtags. User question: " + prompt }]
                         }],
                         generationConfig: {
                             maxOutputTokens: 1024,
@@ -1485,7 +1485,7 @@
 
         // --- GEMINI-POWERED BUDGET PLANNER ---
         async function queryBudgetAI(prompt) {
-            const apiKey = localStorage.getItem('terraflow_gemini_key');
+            const apiKey = localStorage.getItem('zentryx_gemini_key');
             if (!apiKey) return null;
 
             const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
@@ -2268,7 +2268,7 @@
             try {
                 // 1. Geocode location via Nominatim
                 const geocodeUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1`;
-                const geoRes = await fetch(geocodeUrl, { headers: { 'User-Agent': 'TerraFlow-Travel-App' } });
+                const geoRes = await fetch(geocodeUrl, { headers: { 'User-Agent': 'Zentryx-Travel-App' } });
                 
                 if (geoRes.ok) {
                     const geoData = await geoRes.json();

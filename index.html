@@ -16,13 +16,15 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
 <!-- Leaflet Map JS -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<!-- Leaflet Heatmap Plugin -->
+<script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
 <script id="tailwind-config">
       tailwind.config = {
         darkMode: "class",
         theme: {
           extend: {
             colors: {
-              "frontier-deep": "#070d1f",
+              "frontier-deep": "#040816",
               "frontier-navy": "#11192e",
               "frontier-indigo": "#a3a6ff",
               "frontier-lime": "#ceee93",
@@ -97,6 +99,37 @@
         font-weight: 900;
         text-transform: uppercase;
       }
+      /* Glowing Map Engine */
+      .leaflet-container { background: #02040a !important; }
+      .leaflet-tile-pane { filter: invert(95%) hue-rotate(185deg) brightness(0.5) contrast(1.2) saturate(0.4); }
+      .leaflet-marker-icon { filter: drop-shadow(0 0 8px rgba(206, 238, 147, 0.6)); }
+      
+      /* Floating Signal Bubbles */
+      @keyframes signalRise {
+          0% { transform: scale(0); opacity: 1; }
+          100% { transform: scale(3); opacity: 0; }
+      }
+      .signal-ping {
+          position: absolute;
+          border: 1px solid #ceee93;
+          border-radius: 50%;
+          pointer-events: none;
+          z-index: 1001;
+          animation: signalRise 3s cubic-bezier(0, 0.5, 0.5, 1) infinite;
+      }
+
+      /* Dashboard Page Transitions */
+      .dashboard-view { display: none; }
+      .dashboard-view.view-active { 
+          display: block; 
+          animation: dashFade 0.6s cubic-bezier(0.2, 0, 0.2, 1);
+      }
+      @keyframes dashFade {
+          from { opacity: 0; transform: translateY(10px) scale(0.99); filter: blur(4px); }
+          to { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+      }
+      .no-scrollbar::-webkit-scrollbar { display: none; }
+      .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
 </head>
 <body class="bg-frontier-deep text-frontier-text selection:bg-frontier-indigo/30">
@@ -347,172 +380,127 @@
 </div>
 </div>
 </section>
-<!-- AI Co-pilot & Map Section -->
-<section class="py-24 px-6 bg-frontier-deep border-y border-frontier-indigo/10 relative overflow-hidden" id="nav-section">
-    <!-- Grid decorations -->
-    <div class="absolute inset-0 opacity-[0.03] pointer-events-none" style="background-image: radial-gradient(#a3a6ff 1px, transparent 1px); background-size: 40px 40px;"></div>
+<!-- Dashboard Section (Tabbed: Map, Feed, Chat) -->
+<section class="py-12 bg-frontier-deep border-y border-frontier-indigo/10 relative overflow-hidden" id="dashboard-section">
+    <div class="absolute inset-0 opacity-[0.02] pointer-events-none" style="background-image: radial-gradient(#ceee93 1px, transparent 1px); background-size: 30px 30px;"></div>
     
-    <div class="max-w-7xl mx-auto relative z-10">
-        <div class="flex flex-col lg:flex-row gap-12">
-            <!-- Left: AI Control Panel -->
-            <div class="lg:w-1/3 flex flex-col justify-between scroll-slide-left">
-                <div>
-                    <span class="text-xs font-bold tracking-[0.5em] uppercase text-frontier-lime mb-6 block border-l-4 border-frontier-lime pl-4">Navigation Co-Pilot</span>
-                    <h2 class="font-headline text-4xl md:text-5xl font-black text-white mb-6 uppercase tracking-tighter italic">Where to <br/><span class="text-frontier-indigo">next?</span></h2>
-                    <p class="font-body text-frontier-text text-sm uppercase tracking-wider mb-4 leading-relaxed">
-                        Enter any full address, landmark, or city. The AI will locate it, fly you there, and show you precise GPS coordinates and compass direction.
-                    </p>
-                    <button onclick="useMyLocation()" class="mb-6 flex items-center gap-2 text-[10px] uppercase tracking-widest text-frontier-lime border border-frontier-lime/30 hover:border-frontier-lime px-4 py-2 transition-all hover:bg-frontier-lime/10">
-                        <span class="material-symbols-outlined text-sm">my_location</span>
-                        Use My Location
-                    </button>
-                </div>
+    <div class="max-w-7xl mx-auto px-6 relative z-10">
+        <!-- Dashboard Tabs -->
+        <div class="flex items-center justify-center mb-12 border-b border-frontier-indigo/10">
+            <nav class="flex gap-12">
+                <button onclick="switchDashView('map')" id="tab-map" class="pb-4 text-sm font-black uppercase tracking-[0.3em] text-frontier-indigo transition-all border-b-2 border-transparent tab-active flex items-center gap-2">
+                    <span class="material-symbols-outlined text-lg">map</span> Map
+                </button>
+                <button onclick="switchDashView('feed')" id="tab-feed" class="pb-4 text-sm font-black uppercase tracking-[0.3em] text-frontier-text transition-all border-b-2 border-transparent flex items-center gap-2">
+                    <span class="material-symbols-outlined text-lg">broadcast_on_personal</span> Feed
+                </button>
+                <button onclick="switchDashView('chat')" id="tab-chat" class="pb-4 text-sm font-black uppercase tracking-[0.3em] text-frontier-text transition-all border-b-2 border-transparent flex items-center gap-2">
+                    <span class="material-symbols-outlined text-lg">forum</span> Co-Pilot
+                </button>
+            </nav>
+        </div>
 
-                <!-- Coordinate Display -->
-                <div id="coord-display" class="mb-4 glass-frontier p-4 border border-frontier-indigo/20 text-[10px] uppercase tracking-widest hidden">
-                    <div class="grid grid-cols-2 gap-3">
-                        <div>
-                            <div class="text-frontier-indigo/60 mb-1">Latitude</div>
-                            <div class="text-frontier-lime font-black text-sm" id="coord-lat">--</div>
-                        </div>
-                        <div>
-                            <div class="text-frontier-indigo/60 mb-1">Longitude</div>
-                            <div class="text-frontier-lime font-black text-sm" id="coord-lon">--</div>
-                        </div>
-                        <div class="col-span-2">
-                            <div class="text-frontier-indigo/60 mb-1">Location</div>
-                            <div class="text-white font-bold" id="coord-name" style="font-size:9px;">--</div>
-                        </div>
-                        <div class="col-span-2">
-                            <div class="text-frontier-indigo/60 mb-1">Bearing from Centre</div>
-                            <div class="text-frontier-lime font-black" id="coord-bearing">--</div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="glass-frontier p-6 co-pilot-panel bg-frontier-navy/80">
-                    <div id="co-pilot-log" class="h-40 overflow-y-auto mb-4 space-y-3 text-[11px] font-['Space_Grotesk'] uppercase tracking-widest scroll-smooth">
-                        <div class="text-frontier-lime/70"><span class="text-frontier-lime">></span> AI Co-pilot online. Enter any address or landmark...</div>
-                    </div>
-                    <div class="flex gap-2">
-                        <input id="co-pilot-input" type="text" placeholder="e.g. Eiffel Tower, Paris" class="flex-1 bg-frontier-deep border border-frontier-indigo/30 rounded-sm px-3 py-3 text-xs text-white placeholder-frontier-text/60 focus:outline-none focus:border-frontier-lime tracking-wide" onkeydown="if(event.key==='Enter') navCommand()"/>
-                        <button onclick="navCommand()" class="w-12 h-12 bg-frontier-lime text-frontier-deep flex items-center justify-center hover:scale-110 active:scale-95 transition-all">
-                            <span class="material-symbols-outlined font-black">near_me</span>
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Right: The Map with Smart Layers -->
-            <div class="lg:w-2/3 relative scroll-reveal" style="height: 600px;">
-                <div id="map" class="w-full h-full shadow-[0_0_50px_rgba(163,166,255,0.1)] rounded-sm grayscale hover:grayscale-0 transition-opacity"></div>
+        <!-- 1. MAP VIEW -->
+        <div id="view-map" class="dashboard-view view-active">
+            <div class="relative w-full h-[700px] shadow-[0_0_80px_rgba(4,8,22,0.8)] border border-frontier-indigo/10 rounded-sm group">
+                <div id="map" class="w-full h-full"></div>
                 
-                <!-- Layer Toggles -->
+                <!-- Floating Map Signals Overlay (JS will spawn bubbles here) -->
+                <div id="map-signal-field" class="absolute inset-0 pointer-events-none overflow-hidden z-[1001]"></div>
+
+                <!-- Map Logic Overlays -->
                 <div class="absolute top-6 left-6 z-[1000] flex flex-col gap-2">
                     <button onclick="toggleMapLayer('users')" class="layer-btn active glass-frontier p-2.5 text-frontier-indigo border border-frontier-indigo/30 rounded-lg group" id="btn-users">
-                        <span class="material-symbols-outlined text-lg group-hover:scale-110 transition-transform">group</span>
-                        <div class="absolute left-14 bg-frontier-indigo text-frontier-deep px-2 py-1 text-[8px] font-bold uppercase rounded hidden group-hover:block whitespace-nowrap">Active Personnel</div>
+                        <span class="material-symbols-outlined text-lg">group</span>
                     </button>
                     <button onclick="toggleMapLayer('hotspots')" class="layer-btn glass-frontier p-2.5 text-frontier-lime border border-frontier-lime/30 rounded-lg group" id="btn-hotspots">
-                        <span class="material-symbols-outlined text-lg group-hover:scale-110 transition-transform">local_fire_department</span>
-                        <div class="absolute left-14 bg-frontier-lime text-frontier-deep px-2 py-1 text-[8px] font-bold uppercase rounded hidden group-hover:block whitespace-nowrap">Hotspots & Events</div>
+                        <span class="material-symbols-outlined text-lg">local_fire_department</span>
                     </button>
                     <button onclick="toggleMapLayer('alerts')" class="layer-btn glass-frontier p-2.5 text-red-400 border border-red-400/30 rounded-lg group" id="btn-alerts">
-                        <span class="material-symbols-outlined text-lg group-hover:scale-110 transition-transform">warning</span>
-                        <div class="absolute left-14 bg-red-400 text-white px-2 py-1 text-[8px] font-bold uppercase rounded hidden group-hover:block whitespace-nowrap">Safety Alerts</div>
+                        <span class="material-symbols-outlined text-lg">warning</span>
+                    </button>
+                    <button onclick="toggleHeatmap()" class="layer-btn glass-frontier p-2.5 text-orange-400 border border-orange-400/30 rounded-lg group" id="btn-heatmap">
+                        <span class="material-symbols-outlined text-lg">heat_pump</span>
+                        <div class="absolute left-14 bg-orange-400 text-frontier-deep px-2 py-1 text-[8px] font-bold uppercase rounded hidden group-hover:block whitespace-nowrap">Activity Heatmap</div>
                     </button>
                 </div>
 
-                <!-- Meetup/Visibility Toggle -->
-                <div class="absolute top-6 right-16 z-[1000] flex flex-col gap-2">
-                    <div class="glass-frontier p-2 rounded-lg border border-frontier-indigo/20 flex flex-col gap-1 items-center">
-                        <span class="text-[7px] font-bold uppercase tracking-widest text-frontier-lime">Visibility</span>
-                        <label class="relative inline-flex items-center cursor-pointer">
-                            <input type="checkbox" onchange="toggleVisibility()" id="meetup-toggle" class="sr-only peer">
-                            <div class="w-8 h-4 bg-frontier-indigo/20 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-frontier-indigo after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-frontier-lime/30 peer-checked:after:bg-frontier-lime"></div>
-                        </label>
+                <!-- Visibility switch -->
+                <div class="absolute top-6 right-6 z-[1000] glass-frontier p-3 flex items-center gap-4 rounded-lg border border-frontier-indigo/20">
+                   <span id="visibility-status" class="text-[8px] font-black uppercase tracking-widest text-frontier-text">Incognito</span>
+                   <label class="relative inline-flex items-center cursor-pointer">
+                       <input type="checkbox" onchange="toggleVisibility()" id="meetup-toggle" class="sr-only peer">
+                       <div class="w-8 h-4 bg-frontier-indigo/10 rounded-full peer peer-checked:bg-frontier-lime/20 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-frontier-indigo after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:after:translate-x-full peer-checked:after:bg-frontier-lime"></div>
+                   </label>
+                </div>
+
+                <!-- Weather mini-HUD -->
+                <div class="absolute bottom-6 left-6 z-[1000] glass-frontier p-4 border border-frontier-indigo/10 flex items-center gap-6">
+                    <div class="flex items-center gap-2">
+                        <span id="weather-icon" class="material-symbols-outlined text-frontier-lime">cloud</span>
+                        <span id="weather-temp" class="text-xl font-black text-white">--°</span>
                     </div>
+                    <div class="h-6 w-px bg-white/10"></div>
+                    <span id="map-status" class="text-[9px] font-bold uppercase tracking-widest text-frontier-indigo">Sync active</span>
                 </div>
 
-                <!-- Compass Rose Overlay -->
-                <div class="absolute top-4 right-4 z-[1000] w-12 h-12 pointer-events-none opacity-50">
-                    <div class="relative w-full h-full flex items-center justify-center">
-                        <div class="absolute inset-0 rounded-full border border-frontier-indigo/10 glass-frontier"></div>
-                        <span class="material-symbols-outlined text-frontier-lime text-xs" style="font-variation-settings:'FILL' 1;">navigation</span>
-                    </div>
-                </div>
-
-                <!-- Live Status Overlay -->
-                <div class="absolute bottom-6 left-6 z-[1000] glass-frontier px-4 py-2 text-[10px] uppercase font-bold tracking-widest text-frontier-indigo flex items-center gap-3">
-                    <span class="w-2 h-2 rounded-full bg-frontier-lime animate-ping"></span>
-                    <span id="map-status">Syncing Intelligence...</span>
-                </div>
-
-                <!-- Snap to Me Button -->
-                <button onclick="snapToMe()" id="snap-btn" title="Snap back to my location" class="absolute bottom-6 right-6 z-[1000] glass-frontier p-2.5 text-frontier-lime border border-frontier-lime/30 hover:bg-frontier-lime/10 transition-all rounded-full hidden">
-                    <span class="material-symbols-outlined text-lg" style="font-variation-settings:'FILL' 1;">my_location</span>
+                <!-- Snap action -->
+                <button onclick="snapToMe()" class="absolute bottom-6 right-6 z-[1000] glass-frontier p-3 text-frontier-lime border border-frontier-lime/30 rounded-full hover:bg-frontier-lime/10 transition-all">
+                    <span class="material-symbols-outlined">location_searching</span>
                 </button>
             </div>
         </div>
 
-        <!-- Social Hub & Community Intel -->
-        <div class="mt-20 scroll-reveal">
+        <!-- 2. FEED VIEW -->
+        <div id="view-feed" class="dashboard-view">
             <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
-                <!-- Trip Threads (Main social feed) -->
-                <div class="lg:col-span-3 glass-frontier p-8 border border-frontier-indigo/10 relative overflow-hidden">
-                    <div class="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
-                        <span class="material-symbols-outlined text-9xl">forum</span>
-                    </div>
-                    <div class="flex items-center justify-between mb-10">
-                        <div>
-                            <h3 class="text-3xl font-headline font-black uppercase text-white tracking-tighter">Trip Threads</h3>
-                            <p class="text-[9px] uppercase tracking-[0.4em] text-frontier-indigo mt-2">Connect with local travelers on your frequency</p>
-                        </div>
-                        <button onclick="postTripThread()" class="bg-frontier-indigo text-frontier-deep px-6 py-2.5 font-black text-xs uppercase tracking-widest hover:scale-105 active:scale-95 transition-all">Post Broadcast</button>
-                    </div>
-
-                    <div id="threads-container" class="space-y-6 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
-                        <!-- Initial Threads will be injected by JS -->
-                        <div class="animate-pulse flex gap-4 opacity-20">
-                            <div class="w-12 h-12 bg-frontier-indigo/20 rounded"></div>
-                            <div class="flex-1 space-y-2">
-                                <div class="h-2 bg-frontier-indigo/20 w-1/4"></div>
-                                <div class="h-4 bg-frontier-indigo/20 w-3/4"></div>
-                            </div>
-                        </div>
-                    </div>
+                <!-- Social Strip (Stories) -->
+                <div class="lg:col-span-4 bg-frontier-navy/40 p-6 flex items-center gap-8 border border-frontier-indigo/5">
+                    <div id="stories-strip" class="flex gap-6 overflow-x-auto no-scrollbar"></div>
+                    <button onclick="postStory()" class="flex-shrink-0 w-12 h-12 border-2 border-dashed border-frontier-lime/30 rounded-full flex items-center justify-center text-frontier-lime hover:border-frontier-lime transition-all">
+                        <span class="material-symbols-outlined">add</span>
+                    </button>
                 </div>
+                <!-- Bulletin Board -->
+                <div id="threads-container" class="lg:col-span-3 space-y-6 max-h-[600px] overflow-y-auto pr-4 custom-scrollbar"></div>
+                <!-- Contributors -->
+                <div class="lg:col-span-1 glass-frontier p-8 border border-frontier-indigo/10 h-fit">
+                    <h4 class="text-[10px] font-black uppercase text-frontier-lime mb-8 tracking-[0.3em]">Leaderboard</h4>
+                    <div id="reputation-list" class="space-y-6"></div>
+                </div>
+            </div>
+        </div>
 
-                <!-- Sidebar: Intel Stories & Reputation -->
-                <div class="lg:col-span-1 space-y-8">
-                    <!-- Stories / Briefings -->
-                    <div class="glass-frontier p-6 border border-frontier-indigo/10">
-                        <h4 class="text-[10px] font-bold uppercase tracking-[0.3em] text-frontier-lime mb-6">Local Briefings</h4>
-                        <div id="stories-strip" class="flex gap-4 overflow-x-auto pb-4 no-scrollbar">
-                            <!-- JS injected -->
-                        </div>
-                        <button onclick="postStory()" class="w-full mt-4 border border-frontier-lime/30 text-frontier-lime py-2 text-[9px] font-black uppercase tracking-widest hover:bg-frontier-lime/10 transition-all">Upload Story</button>
+        <!-- 3. CHAT VIEW (Co-Pilot Enhanced) -->
+        <div id="view-chat" class="dashboard-view max-w-4xl mx-auto">
+            <div class="glass-frontier p-12 border border-frontier-indigo/10 bg-frontier-navy/20 relative overflow-hidden">
+                <div class="absolute -top-12 -right-12 w-64 h-64 bg-frontier-indigo/5 rounded-full blur-3xl"></div>
+                
+                <div class="relative z-10">
+                    <h3 class="text-4xl font-headline font-black text-white italic uppercase mb-2">AI <span class="text-frontier-indigo">Frequency</span></h3>
+                    <p class="text-xs uppercase tracking-widest text-frontier-text mb-12">Universal intelligence tuned to your current coordinates</p>
+                    
+                    <div id="co-pilot-log" class="h-[400px] overflow-y-auto mb-8 space-y-4 pr-4 custom-scrollbar">
+                        <div class="text-frontier-lime/80"><span class="text-frontier-lime font-black mr-2">></span> COMMANDER IDENTIFIED. SYSTEMS GREEN.</div>
                     </div>
 
-                    <!-- Rankings / Reputation -->
-                    <div class="glass-frontier p-6 border border-frontier-indigo/10 bg-frontier-indigo/5">
-                        <h4 class="text-[10px] font-bold uppercase tracking-[0.3em] text-frontier-indigo mb-6">High Command / Rankings</h4>
-                        <div id="reputation-list" class="space-y-5"></div>
-                        <div class="mt-8 pt-6 border-t border-frontier-indigo/10">
-                            <div class="flex justify-between items-end mb-2">
-                                <span class="text-[9px] font-bold uppercase tracking-widest text-frontier-text">Your Reputation</span>
-                                <span class="text-[10px] font-black text-frontier-indigo uppercase">Rank: Scout</span>
-                            </div>
-                            <div class="h-1 bg-frontier-navy/80 rounded-full overflow-hidden">
-                                <div class="h-full bg-frontier-indigo w-1/4"></div>
-                            </div>
-                        </div>
+                    <div class="flex gap-4">
+                        <input id="co-pilot-input" type="text" placeholder="QUERY INTELLIGENCE..." class="flex-1 bg-frontier-deep border border-frontier-indigo/30 p-4 text-xs text-white placeholder-frontier-text/40 tracking-[0.2em] focus:border-frontier-lime outline-none" onkeydown="if(event.key==='Enter') navCommand()"/>
+                        <button onclick="navCommand()" class="bg-frontier-lime text-frontier-deep px-8 font-black uppercase tracking-widest hover:brightness-110 active:scale-95 transition-all">Transmit</button>
+                    </div>
+
+                    <!-- Quick suggestions -->
+                    <div class="mt-8 flex flex-wrap gap-3">
+                        <button onclick="quickQuery('Is this area safe?')" class="text-[9px] font-black uppercase tracking-widest border border-frontier-indigo/20 px-3 py-1 hover:border-frontier-indigo">Safety Check</button>
+                        <button onclick="quickQuery('Nearby cheap hotels?')" class="text-[9px] font-black uppercase tracking-widest border border-frontier-indigo/20 px-3 py-1 hover:border-frontier-indigo">Budget Stays</button>
+                        <button onclick="quickQuery('Hidden gems in 10km?')" class="text-[9px] font-black uppercase tracking-widest border border-frontier-indigo/20 px-3 py-1 hover:border-frontier-indigo">Hidden Gems</button>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 </section>
+
 
 <!-- Testimonial -->
 <section class="py-32 px-6 border-t border-frontier-indigo/10">
@@ -1493,11 +1481,91 @@ function viewIntel(id) {
     openModal("Community Intel", `Accessing specialized data for cluster: ${id}. Verified by travelers with 4.5+ trust scores.`);
 }
 
+// --- ELITE DASHBOARD ENGINE (Swipe/Tab Switching + Heatmap) ---
+var heatmapLayer = null;
+
+function switchDashView(target) {
+    // Switch tabs
+    document.querySelectorAll('[id^="tab-"]').forEach(btn => {
+        btn.classList.remove('tab-active', 'text-frontier-indigo');
+        btn.classList.add('text-frontier-text');
+    });
+    document.getElementById('tab-' + target).classList.add('tab-active', 'text-frontier-indigo');
+    document.getElementById('tab-' + target).classList.remove('text-frontier-text');
+
+    // Switch containers
+    document.querySelectorAll('.dashboard-view').forEach(v => v.classList.remove('view-active'));
+    document.getElementById('view-' + target).classList.add('view-active');
+
+    // Force map resize if switching to map
+    if (target === 'map' && mainMap) {
+        setTimeout(() => mainMap.invalidateSize(), 150);
+    }
+    
+    // Add small feedback in console-style
+    const status = document.getElementById('map-status');
+    if(status) status.innerText = `Switched to ${target.toUpperCase()} stream`;
+}
+
+function initHeatmap() {
+    if (!mainMap || typeof L.heatLayer === 'undefined') return;
+    // Mock density data near current cluster (Shimla area)
+    const heatData = [
+        [31.1048, 77.1734, 0.9], // High density center
+        [31.1030, 77.1850, 0.4], 
+        [31.1120, 77.1680, 0.6], 
+        [31.1040, 77.1730, 0.85]
+    ];
+    heatmapLayer = L.heatLayer(heatData, {
+        radius: 40,
+        blur: 20,
+        maxZoom: 17,
+        gradient: {0.4: '#a3a6ff', 0.65: '#ceee93', 1: '#ff3366'}
+    });
+}
+
+function toggleHeatmap() {
+    if (!heatmapLayer) initHeatmap();
+    const btn = document.getElementById('btn-heatmap');
+    if (mainMap.hasLayer(heatmapLayer)) {
+        mainMap.removeLayer(heatmapLayer);
+        btn.classList.remove('active');
+    } else {
+        heatmapLayer.addTo(mainMap);
+        btn.classList.add('active');
+        addLog("Activity heatmap activated. Visualizing population density.", false);
+    }
+}
+
+function spawnSignalBubble() {
+    const field = document.getElementById('map-signal-field');
+    if (!field) return;
+    
+    const bubble = document.createElement('div');
+    bubble.className = 'signal-ping';
+    const x = Math.random() * 80 + 10;
+    const y = Math.random() * 80 + 10;
+    bubble.style.left = x + '%';
+    bubble.style.top = y + '%';
+    bubble.style.width = '15px';
+    bubble.style.height = '15px';
+    
+    field.appendChild(bubble);
+    setTimeout(() => bubble.remove(), 3000);
+}
+
+function quickQuery(text) {
+    document.getElementById('co-pilot-input').value = text;
+    navCommand();
+}
+
 function initCommunity() {
     renderMapIntel();
     renderThreads();
     renderStories();
     renderReputation();
+    // Start signal pulses
+    setInterval(spawnSignalBubble, 4000);
 }
 let hourlyForecastData = null;
 

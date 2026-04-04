@@ -70,6 +70,33 @@
         background-size: 100% 4px;
         pointer-events: none;
       }
+      .layer-btn.active {
+        background: rgba(206, 238, 147, 0.2);
+        border-color: #ceee93;
+        box-shadow: 0 0 10px rgba(206, 238, 147, 0.3);
+      }
+      .story-circle {
+        flex-shrink: 0;
+        width: 64px;
+        height: 64px;
+        padding: 2px;
+        border: 2px solid #a3a6ff;
+        border-radius: 50%;
+        cursor: pointer;
+        transition: transform 0.3s;
+      }
+      .story-circle:hover {
+        transform: scale(1.1) rotate(5deg);
+      }
+      .reputation-badge {
+        font-size: 8px;
+        padding: 1px 4px;
+        border-radius: 2px;
+        background: #ceee93;
+        color: #070d1f;
+        font-weight: 900;
+        text-transform: uppercase;
+      }
     </style>
 </head>
 <body class="bg-frontier-deep text-frontier-text selection:bg-frontier-indigo/30">
@@ -237,26 +264,71 @@
 <span class="material-symbols-outlined text-frontier-indigo text-5xl group-hover:scale-110 transition-transform" data-icon="night_shelter">night_shelter</span>
 </div>
 </div>
-<!-- Traffic/Transit Feature -->
-<div class="md:col-span-2 glass-frontier p-8 flex items-center gap-12 border border-frontier-indigo/10 hover:border-frontier-lime transition-all">
-<div class="flex-1">
-<div class="w-16 h-16 bg-frontier-lime/10 flex items-center justify-center text-frontier-lime border border-frontier-lime/30 mb-6 neon-glow-lime">
-<span class="material-symbols-outlined text-3xl" data-icon="traffic">traffic</span>
+<!-- Traffic/Route Planner Feature -->
+<div class="md:col-span-2 glass-frontier p-8 flex flex-col gap-6 border border-frontier-indigo/10 hover:border-frontier-lime transition-all" id="route-planner-card">
+    <div class="flex items-center gap-4">
+        <div class="w-12 h-12 bg-frontier-lime/10 flex items-center justify-center text-frontier-lime border border-frontier-lime/30 neon-glow-lime flex-shrink-0">
+            <span class="material-symbols-outlined text-2xl" style="font-variation-settings:'FILL' 1;">alt_route</span>
+        </div>
+        <div>
+            <h3 class="text-xl font-headline font-bold text-white uppercase">Route Planner</h3>
+            <p class="text-frontier-text text-[11px] uppercase tracking-wider">Shortest path — powered by OpenStreetMap routing</p>
+        </div>
+        <button onclick="useMyLocationForRoute()" class="ml-auto flex-shrink-0 flex items-center gap-1 text-[10px] uppercase tracking-widest text-frontier-lime border border-frontier-lime/30 hover:bg-frontier-lime/10 px-3 py-2 transition-all">
+            <span class="material-symbols-outlined text-sm">my_location</span> Use My Location
+        </button>
+    </div>
+    <!-- Inputs -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div>
+            <label class="text-[10px] uppercase tracking-widest text-frontier-indigo/70 mb-1 block">From</label>
+            <input id="route-from" type="text" placeholder="Origin (city, address...)" class="w-full bg-frontier-deep border border-frontier-indigo/30 px-3 py-2 text-[12px] text-white placeholder-frontier-text focus:outline-none focus:border-frontier-lime transition-colors"/>
+        </div>
+        <div>
+            <label class="text-[10px] uppercase tracking-widest text-frontier-indigo/70 mb-1 block">To</label>
+            <input id="route-to" type="text" placeholder="Destination (city, address...)" class="w-full bg-frontier-deep border border-frontier-indigo/30 px-3 py-2 text-[12px] text-white placeholder-frontier-text focus:outline-none focus:border-frontier-lime transition-colors"/>
+        </div>
+    </div>
+    <!-- Mode selector -->
+    <div class="flex gap-2">
+        <button onclick="setRouteMode('driving')" id="mode-driving" class="route-mode-btn flex items-center gap-1 px-3 py-1.5 text-[10px] uppercase tracking-widest border border-frontier-lime text-frontier-lime bg-frontier-lime/10 transition-all">
+            <span class="material-symbols-outlined text-sm">directions_car</span> Drive
+        </button>
+        <button onclick="setRouteMode('cycling')" id="mode-cycling" class="route-mode-btn flex items-center gap-1 px-3 py-1.5 text-[10px] uppercase tracking-widest border border-frontier-indigo/30 text-frontier-indigo hover:border-frontier-lime hover:text-frontier-lime transition-all">
+            <span class="material-symbols-outlined text-sm">directions_bike</span> Cycle
+        </button>
+        <button onclick="setRouteMode('walking')" id="mode-walking" class="route-mode-btn flex items-center gap-1 px-3 py-1.5 text-[10px] uppercase tracking-widest border border-frontier-indigo/30 text-frontier-indigo hover:border-frontier-lime hover:text-frontier-lime transition-all">
+            <span class="material-symbols-outlined text-sm">directions_walk</span> Walk
+        </button>
+        <button onclick="calculateRoute()" class="ml-auto flex items-center gap-1 px-4 py-1.5 text-[10px] uppercase tracking-widest bg-frontier-lime text-frontier-deep font-black hover:brightness-110 transition-all">
+            <span class="material-symbols-outlined text-sm">route</span> Get Route
+        </button>
+    </div>
+    <!-- Results -->
+    <div id="route-results" class="hidden">
+        <div class="grid grid-cols-3 gap-3 mb-3">
+            <div class="glass-frontier p-3 border border-frontier-lime/20 text-center">
+                <div class="text-[9px] uppercase tracking-widest text-frontier-indigo/60 mb-1">Distance</div>
+                <div class="text-frontier-lime font-black text-lg" id="route-distance">--</div>
+            </div>
+            <div class="glass-frontier p-3 border border-frontier-lime/20 text-center">
+                <div class="text-[9px] uppercase tracking-widest text-frontier-indigo/60 mb-1">Est. Time</div>
+                <div class="text-frontier-lime font-black text-lg" id="route-time">--</div>
+            </div>
+            <div class="glass-frontier p-3 border border-frontier-lime/20 text-center">
+                <div class="text-[9px] uppercase tracking-widest text-frontier-indigo/60 mb-1">Steps</div>
+                <div class="text-frontier-lime font-black text-lg" id="route-steps">--</div>
+            </div>
+        </div>
+        <div id="route-steps-list" class="max-h-28 overflow-y-auto space-y-1 pr-1"></div>
+        <button onclick="scrollToMap()" class="mt-3 text-[10px] uppercase tracking-widest text-frontier-lime border border-frontier-lime/30 hover:bg-frontier-lime/10 px-3 py-2 w-full transition-all flex items-center justify-center gap-1">
+            <span class="material-symbols-outlined text-sm">map</span> View on Map
+        </button>
+    </div>
+    <div id="route-loading" class="hidden text-[11px] text-frontier-lime/60 uppercase tracking-widest animate-pulse">Calculating shortest path...</div>
+    <div id="route-error" class="hidden text-[11px] text-red-400 uppercase tracking-widest"></div>
 </div>
-<h3 class="text-2xl font-headline font-bold text-white uppercase mb-2">Smooth Transit</h3>
-<p class="text-frontier-text text-sm uppercase tracking-wider max-w-sm">Avoid the crowds. Our platform predicts delays and suggests the best routes before you step outside.</p>
-</div>
-<div class="hidden lg:block flex-1 h-32 glass-frontier border border-frontier-lime/20 p-4">
-<div class="flex items-end justify-between h-full gap-1">
-<div class="w-2 bg-frontier-lime/10 h-1/2"></div>
-<div class="w-2 bg-frontier-lime/30 h-3/4"></div>
-<div class="w-2 bg-frontier-lime h-full neon-glow-lime"></div>
-<div class="w-2 bg-frontier-lime/50 h-2/3"></div>
-<div class="w-2 bg-frontier-lime/20 h-1/3"></div>
-<div class="w-2 bg-frontier-lime/40 h-1/2"></div>
-</div>
-</div>
-</div>
+
 <!-- Maps Feature -->
 <div class="md:col-span-1 bg-frontier-indigo p-8 flex flex-col justify-between text-frontier-deep group hover:brightness-110 transition-all">
 <div class="flex justify-between items-start">
@@ -331,29 +403,117 @@
                 </div>
             </div>
 
-            <!-- Right: The Map -->
+            <!-- Right: The Map with Smart Layers -->
             <div class="lg:w-2/3 relative scroll-reveal" style="height: 600px;">
-                <div id="map" class="w-full h-full shadow-[0_0_50px_rgba(163,166,255,0.1)] rounded-sm"></div>
-                <!-- Compass Rose Overlay -->
-                <div class="absolute top-4 right-4 z-[1000] w-16 h-16 pointer-events-none">
-                    <div class="relative w-full h-full flex items-center justify-center">
-                        <div class="absolute inset-0 rounded-full border border-frontier-indigo/30 glass-frontier"></div>
-                        <span class="absolute top-1 left-1/2 -translate-x-1/2 text-[8px] font-black text-frontier-lime">N</span>
-                        <span class="absolute bottom-1 left-1/2 -translate-x-1/2 text-[8px] font-black text-frontier-text">S</span>
-                        <span class="absolute left-1 top-1/2 -translate-y-1/2 text-[8px] font-black text-frontier-text">W</span>
-                        <span class="absolute right-1 top-1/2 -translate-y-1/2 text-[8px] font-black text-frontier-text">E</span>
-                        <span class="material-symbols-outlined text-frontier-lime text-lg" style="font-variation-settings:'FILL' 1;">navigation</span>
+                <div id="map" class="w-full h-full shadow-[0_0_50px_rgba(163,166,255,0.1)] rounded-sm grayscale hover:grayscale-0 transition-opacity"></div>
+                
+                <!-- Layer Toggles -->
+                <div class="absolute top-6 left-6 z-[1000] flex flex-col gap-2">
+                    <button onclick="toggleMapLayer('users')" class="layer-btn active glass-frontier p-2.5 text-frontier-indigo border border-frontier-indigo/30 rounded-lg group" id="btn-users">
+                        <span class="material-symbols-outlined text-lg group-hover:scale-110 transition-transform">group</span>
+                        <div class="absolute left-14 bg-frontier-indigo text-frontier-deep px-2 py-1 text-[8px] font-bold uppercase rounded hidden group-hover:block whitespace-nowrap">Active Personnel</div>
+                    </button>
+                    <button onclick="toggleMapLayer('hotspots')" class="layer-btn glass-frontier p-2.5 text-frontier-lime border border-frontier-lime/30 rounded-lg group" id="btn-hotspots">
+                        <span class="material-symbols-outlined text-lg group-hover:scale-110 transition-transform">local_fire_department</span>
+                        <div class="absolute left-14 bg-frontier-lime text-frontier-deep px-2 py-1 text-[8px] font-bold uppercase rounded hidden group-hover:block whitespace-nowrap">Hotspots & Events</div>
+                    </button>
+                    <button onclick="toggleMapLayer('alerts')" class="layer-btn glass-frontier p-2.5 text-red-400 border border-red-400/30 rounded-lg group" id="btn-alerts">
+                        <span class="material-symbols-outlined text-lg group-hover:scale-110 transition-transform">warning</span>
+                        <div class="absolute left-14 bg-red-400 text-white px-2 py-1 text-[8px] font-bold uppercase rounded hidden group-hover:block whitespace-nowrap">Safety Alerts</div>
+                    </button>
+                </div>
+
+                <!-- Meetup/Visibility Toggle -->
+                <div class="absolute top-6 right-16 z-[1000] flex flex-col gap-2">
+                    <div class="glass-frontier p-2 rounded-lg border border-frontier-indigo/20 flex flex-col gap-1 items-center">
+                        <span class="text-[7px] font-bold uppercase tracking-widest text-frontier-lime">Visibility</span>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" onchange="toggleVisibility()" id="meetup-toggle" class="sr-only peer">
+                            <div class="w-8 h-4 bg-frontier-indigo/20 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-frontier-indigo after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-frontier-lime/30 peer-checked:after:bg-frontier-lime"></div>
+                        </label>
                     </div>
                 </div>
+
+                <!-- Compass Rose Overlay -->
+                <div class="absolute top-4 right-4 z-[1000] w-12 h-12 pointer-events-none opacity-50">
+                    <div class="relative w-full h-full flex items-center justify-center">
+                        <div class="absolute inset-0 rounded-full border border-frontier-indigo/10 glass-frontier"></div>
+                        <span class="material-symbols-outlined text-frontier-lime text-xs" style="font-variation-settings:'FILL' 1;">navigation</span>
+                    </div>
+                </div>
+
                 <!-- Live Status Overlay -->
                 <div class="absolute bottom-6 left-6 z-[1000] glass-frontier px-4 py-2 text-[10px] uppercase font-bold tracking-widest text-frontier-indigo flex items-center gap-3">
                     <span class="w-2 h-2 rounded-full bg-frontier-lime animate-ping"></span>
-                    <span id="map-status">Live Map Ready</span>
+                    <span id="map-status">Syncing Intelligence...</span>
+                </div>
+
+                <!-- Snap to Me Button -->
+                <button onclick="snapToMe()" id="snap-btn" title="Snap back to my location" class="absolute bottom-6 right-6 z-[1000] glass-frontier p-2.5 text-frontier-lime border border-frontier-lime/30 hover:bg-frontier-lime/10 transition-all rounded-full hidden">
+                    <span class="material-symbols-outlined text-lg" style="font-variation-settings:'FILL' 1;">my_location</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Social Hub & Community Intel -->
+        <div class="mt-20 scroll-reveal">
+            <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+                <!-- Trip Threads (Main social feed) -->
+                <div class="lg:col-span-3 glass-frontier p-8 border border-frontier-indigo/10 relative overflow-hidden">
+                    <div class="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
+                        <span class="material-symbols-outlined text-9xl">forum</span>
+                    </div>
+                    <div class="flex items-center justify-between mb-10">
+                        <div>
+                            <h3 class="text-3xl font-headline font-black uppercase text-white tracking-tighter">Trip Threads</h3>
+                            <p class="text-[9px] uppercase tracking-[0.4em] text-frontier-indigo mt-2">Connect with local travelers on your frequency</p>
+                        </div>
+                        <button onclick="postTripThread()" class="bg-frontier-indigo text-frontier-deep px-6 py-2.5 font-black text-xs uppercase tracking-widest hover:scale-105 active:scale-95 transition-all">Post Broadcast</button>
+                    </div>
+
+                    <div id="threads-container" class="space-y-6 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
+                        <!-- Initial Threads will be injected by JS -->
+                        <div class="animate-pulse flex gap-4 opacity-20">
+                            <div class="w-12 h-12 bg-frontier-indigo/20 rounded"></div>
+                            <div class="flex-1 space-y-2">
+                                <div class="h-2 bg-frontier-indigo/20 w-1/4"></div>
+                                <div class="h-4 bg-frontier-indigo/20 w-3/4"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sidebar: Intel Stories & Reputation -->
+                <div class="lg:col-span-1 space-y-8">
+                    <!-- Stories / Briefings -->
+                    <div class="glass-frontier p-6 border border-frontier-indigo/10">
+                        <h4 class="text-[10px] font-bold uppercase tracking-[0.3em] text-frontier-lime mb-6">Local Briefings</h4>
+                        <div id="stories-strip" class="flex gap-4 overflow-x-auto pb-4 no-scrollbar">
+                            <!-- JS injected -->
+                        </div>
+                        <button onclick="postStory()" class="w-full mt-4 border border-frontier-lime/30 text-frontier-lime py-2 text-[9px] font-black uppercase tracking-widest hover:bg-frontier-lime/10 transition-all">Upload Story</button>
+                    </div>
+
+                    <!-- Rankings / Reputation -->
+                    <div class="glass-frontier p-6 border border-frontier-indigo/10 bg-frontier-indigo/5">
+                        <h4 class="text-[10px] font-bold uppercase tracking-[0.3em] text-frontier-indigo mb-6">High Command / Rankings</h4>
+                        <div id="reputation-list" class="space-y-5"></div>
+                        <div class="mt-8 pt-6 border-t border-frontier-indigo/10">
+                            <div class="flex justify-between items-end mb-2">
+                                <span class="text-[9px] font-bold uppercase tracking-widest text-frontier-text">Your Reputation</span>
+                                <span class="text-[10px] font-black text-frontier-indigo uppercase">Rank: Scout</span>
+                            </div>
+                            <div class="h-1 bg-frontier-navy/80 rounded-full overflow-hidden">
+                                <div class="h-full bg-frontier-indigo w-1/4"></div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </section>
+
 <!-- Testimonial -->
 <section class="py-32 px-6 border-t border-frontier-indigo/10">
 <div class="max-w-4xl mx-auto text-center">
@@ -1042,7 +1202,303 @@ function closeModal() {
     }, 300);
 }
 
-// --- NEW INTELLIGENCE LAYER: REAL-TIME WEATHER ---
+// --- COMMUNITY INTELLIGENCE DATA (SMART MAP LAYER) ---
+// Since this is a static demo, we simulate the crowd-sourced data with an active object.
+var COMMUNITY_DATA = {
+    users: [
+        { id: 1, name: "Marcus_T001", lat: 31.1048, lon: 77.1734, status: "Eating at Cafe Sol, Shimla", trust: 5.0, vibe: "Verified Traveler" },
+        { id: 2, name: "Sara_Geo", lat: 31.1120, lon: 77.1680, status: "Hotel Ridge — 2 Rooms Left!", trust: 4.9, vibe: "Local Insider" },
+        { id: 3, name: "Arjun_X", lat: 31.1030, lon: 77.1850, status: "Trekking Jakhu Temple — Clear Path", trust: 4.2, vibe: "Explorer" }
+    ],
+    hotspots: [
+        { id: 101, name: "Cafe Sol", lat: 31.1044, lon: 77.1740, availability: "Medium Crowd", type: "cafe", posts: ["Best coffee in town!", "Live music at 8 PM."] },
+        { id: 102, name: "The Ridge Hotel", lat: 31.1055, lon: 77.1710, availability: "2 Rooms Left", type: "hotel", posts: ["Valley view is peak right now.", "Update: Fully booked for Friday."] },
+        { id: 103, name: "Mall Road Square", lat: 31.1040, lon: 77.1730, availability: "Peak Hours", type: "event", posts: ["Handicraft fair starting!"] }
+    ],
+    alerts: [
+        { id: 201, lat: 31.1150, lon: 77.1600, type: "weather", msg: "Light Rain starting soon in North Shimla", severity: "Medium" },
+        { id: 202, lat: 31.1045, lon: 77.1735, type: "traffic", msg: "Mall Road Traffic Alert: VIP Movement", severity: "High" }
+    ],
+    threads: [
+        { id: 1, user: "Marcus_T001", rank: "Verified Traveler", trust: "4.8★", msg: "Anyone headed to Kasol this weekend? Looking for a shared cab from Chandigarh. Split costs 50/50.", time: "2h ago" },
+        { id: 2, user: "Sara_Geo", rank: "Local Insider", trust: "5.0★", msg: "WARNING: Heavy fog on Shimla Bypass. Visibility is less than 5 meters. Take Kalka-Shimla highway instead.", time: "45m ago" },
+        { id: 3, user: "Traveler_99", rank: "Newbie", trust: "3.2★", msg: "Found a hidden cafe near Mall Road with free Wi-Fi and 500mbps speed! It's called 'CyberBrew'.", time: "10m ago" }
+    ],
+    ranking: [
+        { user: "Sara_Geo", assists: 142, xp: 980 },
+        { user: "Marcus_T001", assists: 89, xp: 620 },
+        { user: "Arjun_Explorer", assists: 45, xp: 310 }
+    ],
+    stories: [
+        { id: 1, loc: "Shimla Mall", user: "Marcus_T001", img: "https://lh3.googleusercontent.com/aida-public/AB6AXuCH0Y8F--B6E6H2G88M_Z8Aqc98Yy7Dsd9L-x4H" },
+        { id: 2, loc: "Jakhu Temple", user: "Arjun_X", img: "https://lh3.googleusercontent.com/aida-public/AB6AXuCy-A6T-Z-y" }
+    ]
+};
+
+var mapLayers = {
+    users: L.layerGroup(),
+    hotspots: L.layerGroup(),
+    alerts: L.layerGroup()
+};
+
+var isVisibleOnMap = false;
+
+function toggleVisibility() {
+    isVisibleOnMap = document.getElementById('meetup-toggle').checked;
+    const status = document.getElementById('visibility-status');
+    if (isVisibleOnMap) {
+        status.innerText = "Broadcasting Position";
+        status.classList.remove('text-frontier-text');
+        status.classList.add('text-frontier-lime');
+        addLog("Visibility active. Nearby travelers can see your location.");
+    } else {
+        status.innerText = "Incognito Mode";
+        status.classList.add('text-frontier-text');
+        status.classList.remove('text-frontier-lime');
+        addLog("Incognito active. Ghost protocol initiated.");
+    }
+    renderMapIntel();
+}
+
+function renderMapIntel() {
+    if (!mainMap) return;
+    
+    // Clear old
+    mapLayers.users.clearLayers();
+    mapLayers.hotspots.clearLayers();
+    mapLayers.alerts.clearLayers();
+
+    // Render Users
+    COMMUNITY_DATA.users.forEach(u => {
+        const marker = L.marker([u.lat, u.lon], {
+            icon: L.divIcon({
+                className: '',
+                html: `<div class="relative group cursor-pointer">
+                    <div class="w-8 h-8 rounded-full border-2 border-frontier-indigo animate-pulse p-0.5 bg-frontier-navy overflow-hidden">
+                        <img src="https://i.pravatar.cc/150?u=${u.id}" class="rounded-full w-full h-full object-cover">
+                    </div>
+                    <div class="absolute -bottom-1 -right-1 bg-frontier-lime w-2.5 h-2.5 rounded-full border border-frontier-deep"></div>
+                </div>`,
+                iconSize: [32, 32],
+                iconAnchor: [16, 16]
+            })
+        });
+        marker.bindPopup(`
+            <div class="glass-frontier p-4 border border-frontier-indigo/30 min-w-[200px]">
+                <div class="flex justify-between items-center mb-2">
+                    <span class="text-[10px] font-black text-white uppercase">${u.name}</span>
+                    <span class="reputation-badge">Trust: ${u.trust}★</span>
+                </div>
+                <p class="text-[9px] text-frontier-indigo uppercase tracking-wider italic mb-3">"${u.status}"</p>
+                <div class="flex gap-2">
+                    <button class="flex-1 bg-frontier-indigo/10 border border-frontier-indigo/30 text-[8px] font-bold py-1 uppercase text-frontier-indigo hover:bg-frontier-indigo hover:text-frontier-deep">Message</button>
+                    <button class="flex-1 bg-frontier-lime/10 border border-frontier-lime/30 text-[8px] font-bold py-1 uppercase text-frontier-lime hover:bg-frontier-lime hover:text-frontier-deep">Invite</button>
+                </div>
+            </div>
+        `, { className: 'custom-popup' });
+        mapLayers.users.addLayer(marker);
+    });
+
+    // Render Hotspots (Cafes, Hotels with availability)
+    COMMUNITY_DATA.hotspots.forEach(h => {
+        const color = h.type === 'hotel' ? '#a3a6ff' : '#ceee93';
+        const icon = h.type === 'hotel' ? 'hotel' : h.type === 'cafe' ? 'local_cafe' : 'star';
+        
+        const marker = L.marker([h.lat, h.lon], {
+            icon: L.divIcon({
+                className: '',
+                html: `<div class="w-10 h-10 glass-frontier rounded-lg border border-${h.type==='hotel'?'frontier-indigo':'frontier-lime'}/40 flex items-center justify-center text-${h.type==='hotel'?'frontier-indigo':'frontier-lime'} shadow-xl">
+                    <span class="material-symbols-outlined text-lg">${icon}</span>
+                </div>`,
+                iconSize: [40, 40],
+                iconAnchor: [20, 20]
+            })
+        });
+        
+        marker.bindPopup(`
+            <div class="glass-frontier p-4 border border-frontier-indigo/30 min-w-[220px]">
+                <h4 class="text-xs font-black text-white uppercase mb-1">${h.name}</h4>
+                <div class="flex items-center gap-2 mb-3">
+                    <span class="text-[8px] font-bold uppercase tracking-widest text-frontier-lime">${h.availability}</span>
+                    <span class="w-1 h-1 bg-white/20 rounded-full"></span>
+                    <span class="text-[8px] text-frontier-text uppercase">${h.type}</span>
+                </div>
+                <div class="space-y-2 mb-4">
+                    ${h.posts.map(p => `<div class="text-[9px] text-frontier-indigo border-l-2 border-frontier-indigo/30 pl-2">"${p}"</div>`).join('')}
+                </div>
+                <button onclick="updateAvailability(${h.id})" class="w-full bg-[#fff]/5 border border-[#fff]/10 text-[8px] font-black py-2 uppercase tracking-widest text-[#fff] hover:bg-frontier-indigo hover:text-frontier-deep transition-all">Update Room Availability</button>
+            </div>
+        `, { className: 'custom-popup' });
+        mapLayers.hotspots.addLayer(marker);
+    });
+
+    // Render Alerts
+    COMMUNITY_DATA.alerts.forEach(a => {
+        const icon = a.type === 'traffic' ? 'traffic' : 'storm';
+        const marker = L.marker([a.lat, a.lon], {
+            icon: L.divIcon({
+                className: '',
+                html: `<div class="w-8 h-8 rounded-full border-2 border-red-500 bg-red-500 animate-bounce flex items-center justify-center shadow-[0_0_15px_rgba(239,68,68,0.5)]">
+                    <span class="material-symbols-outlined text-white text-sm">warning</span>
+                </div>`,
+                iconSize: [32, 32],
+                iconAnchor: [16, 16]
+            })
+        });
+        marker.bindPopup(`<div class="bg-red-950/90 border border-red-500 p-3 text-white">
+            <div class="text-[8px] font-bold uppercase mb-1 flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-red-400"></span> Live ${a.type} Alert</div>
+            <div class="text-[10px] font-bold">${a.msg}</div>
+        </div>`, { className: 'custom-popup' });
+        mapLayers.alerts.addLayer(marker);
+    });
+
+    // Initial Toggles
+    mapLayers.users.addTo(mainMap);
+    mapLayers.hotspots.addTo(mainMap);
+    mapLayers.alerts.addTo(mainMap);
+}
+
+function toggleMapLayer(type) {
+    const btn = document.getElementById('btn-' + type);
+    if (!mainMap.hasLayer(mapLayers[type])) {
+        mainMap.addLayer(mapLayers[type]);
+        btn.classList.add('active');
+    } else {
+        mainMap.removeLayer(mapLayers[type]);
+        btn.classList.remove('active');
+    }
+}
+
+function renderThreads() {
+    const container = document.getElementById('threads-container');
+    if (!container) return;
+    
+    container.innerHTML = COMMUNITY_DATA.threads.map(t => `
+        <div class="p-6 bg-frontier-navy/40 border border-frontier-indigo/5 hover:border-frontier-indigo/30 transition-all rounded-lg flex gap-5 group">
+            <div class="w-12 h-12 rounded-lg bg-frontier-indigo/10 flex-shrink-0 flex items-center justify-center border border-frontier-indigo/20">
+                <span class="material-symbols-outlined text-frontier-indigo">person_pin</span>
+            </div>
+            <div class="flex-1">
+                <div class="flex justify-between items-center mb-2">
+                    <div class="flex flex-col">
+                        <span class="text-[11px] font-black text-white uppercase tracking-wider">${t.user}</span>
+                        <span class="text-[7px] text-frontier-lime font-bold uppercase tracking-widest">${t.rank} • ${t.trust} Reliable</span>
+                    </div>
+                    <span class="text-[8px] text-frontier-text uppercase">${t.time}</span>
+                </div>
+                <p class="text-[12px] text-frontier-text leading-relaxed tracking-wide uppercase italic">"${t.msg}"</p>
+                <div class="mt-4 flex gap-4 border-t border-frontier-indigo/5 pt-4">
+                    <button class="text-[9px] font-black text-frontier-indigo uppercase tracking-widest flex items-center gap-1 hover:text-frontier-lime transition-colors"><span class="material-symbols-outlined text-xs">chat</span> Send Frequency</button>
+                    <button class="text-[9px] font-black text-frontier-text uppercase tracking-widest flex items-center gap-1 hover:text-white transition-colors"><span class="material-symbols-outlined text-xs">share_location</span> Route to Intel</button>
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
+
+function renderStories() {
+    const strip = document.getElementById('stories-strip');
+    if (!strip) return;
+    strip.innerHTML = COMMUNITY_DATA.stories.map(s => `
+        <div class="flex-shrink-0 flex flex-col items-center gap-2 cursor-pointer group" onclick="viewStory('${s.id}')">
+            <div class="story-circle ring-offset-2 ring-offset-frontier-deep">
+                <img src="${s.img}" class="w-full h-full rounded-full object-cover grayscale group-hover:grayscale-0 transition-all">
+            </div>
+            <span class="text-[7px] font-bold text-frontier-indigo uppercase tracking-widest">${s.loc}</span>
+        </div>
+    `).join('');
+}
+
+function renderReputation() {
+    const list = document.getElementById('reputation-list');
+    if (!list) return;
+    list.innerHTML = COMMUNITY_DATA.ranking.map((r, i) => `
+        <div class="flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <span class="text-xs font-black text-frontier-indigo/40">#0${i+1}</span>
+                <span class="text-[10px] font-black text-white uppercase">${r.user}</span>
+            </div>
+            <div class="text-[9px] text-frontier-lime font-black uppercase tracking-widest">${r.assists} Intelligence Assists</div>
+        </div>
+    `).join('');
+}
+
+// --- INTELLIGENCE HOOK: AI Context ---
+// We overwrite queryAI to include a brief community context for smarter travel recommendations.
+var originalQueryAI = queryAI;
+queryAI = async function(prompt) {
+    const context = `
+        Current Local Intel:
+        - Active Threads: ${COMMUNITY_DATA.threads.slice(0,2).map(t => t.msg).join(' ')}
+        - Hotspots: ${COMMUNITY_DATA.hotspots.map(h => `${h.name} (${h.availability})`).join(', ')}
+        - Alerts: ${COMMUNITY_DATA.alerts.map(a => a.msg).join(', ')}
+    `;
+    const enrichedPrompt = `Context: ${context}. Question: ${prompt}`;
+    return await originalQueryAI(enrichedPrompt);
+};
+
+function updateAvailability(hotelId) {
+    const h = COMMUNITY_DATA.hotspots.find(x => x.id === hotelId);
+    if (!h) return;
+    const newStatus = prompt(`Update status for ${h.name}:`, h.availability);
+    if (newStatus) {
+        h.availability = newStatus;
+        h.posts.unshift(`Update: ${newStatus}`);
+        addLog(`Intelligence update: ${h.name} is now ${newStatus}.`);
+        renderMapIntel();
+        // Simulate reputation gain
+        addLog("Reputation Points +10 for community intelligence contributing!");
+    }
+}
+
+function postTripThread() {
+    const msg = prompt("Broadcast your update to the region:");
+    if (msg) {
+        COMMUNITY_DATA.threads.unshift({
+            user: "YOU (COMMANDER)",
+            rank: "Elite Traveler",
+            trust: "5.0★",
+            msg: msg,
+            time: "Just Now"
+        });
+        renderThreads();
+        addLog("Trip broadcast transmitted successfully.");
+    }
+}
+
+function postStory() {
+    addLog("Story capture mode active. Frame the moment and broadcast.");
+    const loc = prompt("Tag Location:");
+    if (loc) {
+        COMMUNITY_DATA.stories.unshift({
+            id: Date.now(),
+            loc: loc,
+            user: "Commander",
+            img: "https://i.pravatar.cc/150?u=commander"
+        });
+        renderStories();
+    }
+}
+
+function viewStory(id) {
+    const s = COMMUNITY_DATA.stories.find(x => x.id == id);
+    if (s) {
+        openModal(`Intel Briefing: ${s.loc}`, `<img src="${s.img}" class="w-full h-64 object-cover mb-4 grayscale"> <p class="text-xs uppercase">Uploaded by ${s.user} • Verified via GeoSync.</p>`);
+        addLog(`Viewing briefing from ${s.loc}... Accessing satellite image.`);
+    }
+}
+
+function viewIntel(id) {
+    addLog(`Accessing ${id} intelligence record... Authorization granted.`);
+    openModal("Community Intel", `Accessing specialized data for cluster: ${id}. Verified by travelers with 4.5+ trust scores.`);
+}
+
+function initCommunity() {
+    renderMapIntel();
+    renderThreads();
+    renderStories();
+    renderReputation();
+}
 let hourlyForecastData = null;
 
 async function initWeather() {
@@ -1190,6 +1646,172 @@ function initMap() {
     L.control.zoom({ position: 'bottomright' }).addTo(mainMap);
 }
 
+// --- ROUTE PLANNER ENGINE ---
+let currentRouteMode = 'driving';
+let currentRouteLine = null;
+let routeStartMarker = null;
+let routeEndMarker = null;
+
+function setRouteMode(mode) {
+    currentRouteMode = mode;
+    document.querySelectorAll('.route-mode-btn').forEach(btn => {
+        btn.className = btn.className
+            .replace('border-frontier-lime text-frontier-lime bg-frontier-lime/10', '')
+            + ' border-frontier-indigo/30 text-frontier-indigo';
+    });
+    const active = document.getElementById('mode-' + mode);
+    if (active) {
+        active.className = active.className
+            .replace('border-frontier-indigo/30 text-frontier-indigo', '')
+            + ' border-frontier-lime text-frontier-lime bg-frontier-lime/10';
+    }
+}
+
+function useMyLocationForRoute() {
+    if (userLocationMarker) {
+        const latlng = userLocationMarker.getLatLng();
+        // Reverse geocode to get address
+        fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latlng.lat}&lon=${latlng.lng}`)
+            .then(r => r.json())
+            .then(data => {
+                document.getElementById('route-from').value = data.display_name ? data.display_name.split(',').slice(0,3).join(',') : `${latlng.lat.toFixed(5)}, ${latlng.lng.toFixed(5)}`;
+            })
+            .catch(() => {
+                document.getElementById('route-from').value = `${latlng.lat.toFixed(5)}, ${latlng.lng.toFixed(5)}`;
+            });
+    } else {
+        if (!navigator.geolocation) return;
+        navigator.geolocation.getCurrentPosition(pos => {
+            document.getElementById('route-from').value = `${pos.coords.latitude.toFixed(5)}, ${pos.coords.longitude.toFixed(5)}`;
+        });
+    }
+}
+
+async function geocodePlace(query) {
+    // Check if it's already lat,lon
+    const coordMatch = query.match(/^(-?\d+\.?\d*),\s*(-?\d+\.?\d*)$/);
+    if (coordMatch) return { lat: parseFloat(coordMatch[1]), lon: parseFloat(coordMatch[2]) };
+    
+    const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(query)}`);
+    const data = await res.json();
+    if (!data || data.length === 0) throw new Error(`Could not find: "${query}"`);
+    return { lat: parseFloat(data[0].lat), lon: parseFloat(data[0].lon) };
+}
+
+function formatDuration(seconds) {
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    if (h > 0) return `${h}h ${m}m`;
+    return `${m} min`;
+}
+
+function formatDistance(meters) {
+    if (meters >= 1000) return (meters / 1000).toFixed(1) + ' km';
+    return Math.round(meters) + ' m';
+}
+
+async function calculateRoute() {
+    const fromInput = document.getElementById('route-from').value.trim();
+    const toInput = document.getElementById('route-to').value.trim();
+    const loading = document.getElementById('route-loading');
+    const results = document.getElementById('route-results');
+    const errorEl = document.getElementById('route-error');
+
+    if (!fromInput || !toInput) {
+        errorEl.textContent = 'Please fill in both From and To fields.';
+        errorEl.classList.remove('hidden');
+        return;
+    }
+
+    results.classList.add('hidden');
+    errorEl.classList.add('hidden');
+    loading.classList.remove('hidden');
+
+    try {
+        // Geocode both locations
+        const [from, to] = await Promise.all([geocodePlace(fromInput), geocodePlace(toInput)]);
+
+        // OSRM routing (free, no key)
+        // Map our mode to OSRM profile
+        const osrmProfile = currentRouteMode === 'cycling' ? 'bike' : currentRouteMode === 'walking' ? 'foot' : 'car';
+        const osrmUrl = `https://router.project-osrm.org/route/v1/${osrmProfile}/${from.lon},${from.lat};${to.lon},${to.lat}?overview=full&geometries=geojson&steps=true`;
+
+        const res = await fetch(osrmUrl);
+        const data = await res.json();
+
+        if (data.code !== 'Ok' || !data.routes || data.routes.length === 0) {
+            throw new Error('No route found between these locations.');
+        }
+
+        const route = data.routes[0];
+        const coords = route.geometry.coordinates; // [lon, lat] pairs
+
+        // Update stats
+        document.getElementById('route-distance').textContent = formatDistance(route.distance);
+        document.getElementById('route-time').textContent = formatDuration(route.duration);
+        
+        // Extract steps
+        const steps = route.legs.flatMap(leg => leg.steps).filter(s => s.maneuver.type !== 'arrive' && s.name);
+        document.getElementById('route-steps').textContent = steps.length;
+
+        // Render turn-by-turn steps
+        const stepsList = document.getElementById('route-steps-list');
+        stepsList.innerHTML = steps.slice(0, 12).map((s, i) => `
+            <div class="text-[10px] text-frontier-text flex items-start gap-2 py-1 border-b border-frontier-indigo/10">
+                <span class="text-frontier-lime font-black flex-shrink-0">${i + 1}.</span>
+                <span>${s.maneuver.type === 'turn' ? (s.maneuver.modifier || '') + ' on ' : ''}${s.name || 'Continue'} (${formatDistance(s.distance)})</span>
+            </div>
+        `).join('');
+
+        // Draw route on Leaflet map
+        if (currentRouteLine) mainMap.removeLayer(currentRouteLine);
+        if (routeStartMarker) mainMap.removeLayer(routeStartMarker);
+        if (routeEndMarker) mainMap.removeLayer(routeEndMarker);
+
+        // Convert OSRM [lon,lat] to Leaflet [lat,lon]
+        const latLngs = coords.map(c => [c[1], c[0]]);
+        
+        currentRouteLine = L.polyline(latLngs, {
+            color: '#ceee93',
+            weight: 5,
+            opacity: 0.85,
+            lineJoin: 'round'
+        }).addTo(mainMap);
+
+        // Start marker (green dot)
+        routeStartMarker = L.marker([from.lat, from.lon], {
+            icon: L.divIcon({
+                className: '',
+                html: `<div style="width:14px;height:14px;background:#ceee93;border:2px solid #070d1f;border-radius:50%;box-shadow:0 0 8px rgba(206,238,147,0.8);"></div>`,
+                iconSize: [14,14], iconAnchor: [7,7]
+            })
+        }).bindPopup(`<div style="font-family:'Space Grotesk',sans-serif;font-size:11px;background:#11192e;color:#ceee93;padding:6px;">📍 Start: ${fromInput.split(',')[0]}</div>`).addTo(mainMap);
+
+        // End marker (indigo dot)
+        routeEndMarker = L.marker([to.lat, to.lon], {
+            icon: L.divIcon({
+                className: '',
+                html: `<div style="width:14px;height:14px;background:#a3a6ff;border:2px solid #070d1f;border-radius:50%;box-shadow:0 0 8px rgba(163,166,255,0.8);"></div>`,
+                iconSize: [14,14], iconAnchor: [7,7]
+            })
+        }).bindPopup(`<div style="font-family:'Space Grotesk',sans-serif;font-size:11px;background:#11192e;color:#a3a6ff;padding:6px;">🏁 Destination: ${toInput.split(',')[0]}</div>`).addTo(mainMap);
+
+        // Fit map to route
+        mainMap.fitBounds(currentRouteLine.getBounds(), { padding: [60, 60], animate: true, duration: 1.5 });
+
+        results.classList.remove('hidden');
+        loading.classList.add('hidden');
+
+        // Scroll to map after short delay
+        setTimeout(() => scrollToMap(), 500);
+
+    } catch(err) {
+        loading.classList.add('hidden');
+        errorEl.textContent = 'Error: ' + err.message;
+        errorEl.classList.remove('hidden');
+    }
+}
+
 function addLog(text, isAI = true) {
     const log = document.getElementById('co-pilot-log');
     const div = document.createElement('div');
@@ -1199,7 +1821,9 @@ function addLog(text, isAI = true) {
     log.scrollTop = log.scrollHeight;
 }
 
-let currentMarker = null;
+let currentMarker = null;   // For search/destination markers
+let userLocationMarker = null; // For live user location — never removed by search
+let locationWatcher = null;    // watchPosition ID for continuous tracking
 
 function getBearingLabel(lat, lon) {
     // Calculate bearing from world center (0,0) to this point
@@ -1243,7 +1867,7 @@ async function navCommand() {
             addLog(`Found: ${display_name.substring(0, 60)}...`);
             addLog(`Lat: ${latF.toFixed(6)}° ${latF >= 0 ? 'N' : 'S'} | Lon: ${lonF.toFixed(6)}° ${lonF >= 0 ? 'E' : 'W'}`);
 
-            // Remove old marker
+            // Remove old SEARCH marker only (never touches user location dot)
             if (currentMarker) mainMap.removeLayer(currentMarker);
 
             // Fly to location at street/landmark level zoom
@@ -1289,34 +1913,75 @@ function useMyLocation() {
     }
     addLog('Detecting your current position...');
     document.getElementById('map-status').innerText = 'Locating...';
-    navigator.geolocation.getCurrentPosition((position) => {
-        const { latitude: lat, longitude: lon } = position.coords;
-        
-        if (currentMarker) mainMap.removeLayer(currentMarker);
-        mainMap.flyTo([lat, lon], 15, { animate: true, duration: 2.5 });
-        
-        currentMarker = L.marker([lat, lon], {
-            icon: L.divIcon({
-                className: '',
-                html: `<div style="width:18px;height:18px;background:#a3a6ff;border:3px solid #ceee93;border-radius:50%;box-shadow:0 0 15px rgba(163,166,255,0.9);"></div>`,
-                iconAnchor: [9, 9]
-            })
-        }).addTo(mainMap);
 
-        currentMarker.bindPopup(`
-            <div style="font-family:'Space Grotesk',sans-serif;font-size:11px;background:#11192e;color:#a3a6ff;padding:8px;border:1px solid rgba(163,166,255,0.3);border-radius:4px;">
-                <div style="color:#ceee93;font-weight:bold;margin-bottom:4px;">You are here</div>
-                <div style="color:#ceee93;">${lat.toFixed(5)}° ${lat >= 0 ? 'N' : 'S'}</div>
-                <div style="color:#ceee93;">${lon.toFixed(5)}° ${lon >= 0 ? 'E' : 'W'}</div>
-            </div>
-        `, { className: 'custom-popup' }).openPopup();
+    // Stop any previous watcher
+    if (locationWatcher !== null) {
+        navigator.geolocation.clearWatch(locationWatcher);
+    }
 
-        showCoordinates(lat, lon, 'Your current location');
-        addLog(`Location found! Lat ${lat.toFixed(5)}° | Lon ${lon.toFixed(5)}°`);
-        document.getElementById('map-status').innerText = 'Your Location';
-    }, () => {
-        addLog('Location access denied. Please enable location in your browser.');
-    });
+    // Use watchPosition so the dot updates continuously and never disappears
+    locationWatcher = navigator.geolocation.watchPosition(
+        (position) => {
+            const { latitude: lat, longitude: lon } = position.coords;
+
+            // Remove and re-add user location dot (keeps it on top and accurate)
+            if (userLocationMarker) mainMap.removeLayer(userLocationMarker);
+
+            userLocationMarker = L.marker([lat, lon], {
+                icon: L.divIcon({
+                    className: '',
+                    html: `<div style="
+                        width:16px;height:16px;
+                        background:#e53e3e;
+                        border:3px solid #fff;
+                        border-radius:50%;
+                        box-shadow:0 0 0 4px rgba(229,62,62,0.35), 0 0 12px rgba(229,62,62,0.6);
+                        position:relative;
+                        z-index:9999;
+                    "></div>`,
+                    iconSize: [16, 16],
+                    iconAnchor: [8, 8]
+                }),
+                zIndexOffset: 9999  // Always on top
+            }).addTo(mainMap);
+
+            userLocationMarker.bindPopup(`
+                <div style="font-family:'Space Grotesk',sans-serif;font-size:11px;background:#11192e;color:#a3a6ff;padding:8px;border:1px solid rgba(163,166,255,0.3);border-radius:4px;">
+                    <div style="color:#e53e3e;font-weight:bold;margin-bottom:4px;">📍 You are here</div>
+                    <div style="color:#ceee93;">${lat.toFixed(5)}° ${lat >= 0 ? 'N' : 'S'}</div>
+                    <div style="color:#ceee93;">${lon.toFixed(5)}° ${lon >= 0 ? 'E' : 'W'}</div>
+                </div>
+            `, { className: 'custom-popup' });
+
+            showCoordinates(lat, lon, 'Your current location');
+            addLog(`Live location: ${lat.toFixed(5)}° | ${lon.toFixed(5)}°`);
+            document.getElementById('map-status').innerText = 'Live Tracking';
+
+            // Show the snap button now that we have a location
+            const snapBtn = document.getElementById('snap-btn');
+            if (snapBtn) snapBtn.classList.remove('hidden');
+
+            // Only fly to location on the FIRST fix
+            if (!window._locationInitialized) {
+                window._locationInitialized = true;
+                mainMap.flyTo([lat, lon], 15, { animate: true, duration: 2.5 });
+            }
+        },
+        (err) => {
+            addLog('Location access denied. Please enable location in your browser.');
+        },
+        { enableHighAccuracy: true, maximumAge: 5000, timeout: 10000 }
+    );
+}
+
+function snapToMe() {
+    if (!userLocationMarker) {
+        addLog('No live location yet. Click "Use My Location" first.');
+        return;
+    }
+    const latlng = userLocationMarker.getLatLng();
+    mainMap.flyTo(latlng, mainMap.getZoom() < 13 ? 15 : mainMap.getZoom(), { animate: true, duration: 1.2 });
+    addLog(`Snapped back to your location: ${latlng.lat.toFixed(5)}° | ${latlng.lng.toFixed(5)}°`);
 }
 
 function handleKeyPress(e) {
@@ -1457,6 +2122,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // 2.5 INITIALIZE INTELLIGENCE LAYERS
     initWeather();
     initMap();
+    initCommunity();
 
     // 3. BUTTERY SMOOTH LERP SCROLL PHYSICS
     // We use requestAnimationFrame and a linear interpolation (lerp) function

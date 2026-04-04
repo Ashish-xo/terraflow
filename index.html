@@ -1376,7 +1376,7 @@
             const q = question.toLowerCase();
 
             // 1. GREETINGS (Higher priority to avoid mis-matching common word fragments)
-            if (q.includes('hello') || q.includes('hi') || q.includes('hey') || q === 'hii' || q === 'hi') {
+            if (/\b(hello|hi|hey|hii)\b/i.test(q)) {
                 return `Hello! I'm Zentryx, your travel intelligence assistant. I can help with travel routes, budgets, and tips across India and international destinations. Try asking me about a specific route like "Amritsar to Shimla" or "Delhi to Mumbai". For unlimited AI intelligence, add your free Gemini API key via the gear icon above!`;
             }
 
@@ -1424,7 +1424,26 @@
                 return `Food costs in India: Street food 30-100 INR per meal, Local restaurants 100-300 INR, Mid-range restaurants 300-800 INR, Fine dining 1000+ INR. Thalis are the best value — a full meal for 80-200 INR. Always try local specialties!`;
             }
 
-            return `I'm Zentryx running in offline mode. I have travel data for popular Indian routes and general travel tips. Try asking about specific routes (e.g., "Delhi to Goa") or topics (hotels, trains, food, budget). For unlimited AI answers on any topic, add your free Gemini API key by clicking the settings gear icon in the chat header — it takes 30 seconds at aistudio.google.com/apikey!`;
+            // 4. Fun Adaptable Modules (Offline)
+            window.offlineLastTopic = window.offlineLastTopic || null;
+
+            if (q.includes('fire') || q.includes('survive')) {
+                window.offlineLastTopic = 'fire';
+                return `*Zentryx Survival Module (Offline)* 🔥 To start a fire: 1. Gather dry tinder (dry grass, leaves). 2. Collect kindling (small twigs). 3. Arrange in a teepee shape. 4. Light the tinder with a spark, match, or friction (like a bow drill). Gently blow on the ember to feed it oxygen!`;
+            }
+
+            // Follow-up handler
+            if (window.offlineLastTopic === 'fire' && (q.includes('simple') || q.includes('easier') || q.includes('understand') || q.includes('normal'))) {
+                return `*Survival Module (Simplified)*: Sorry about that! Here is the easiest way:\n1. Get very dry grass.\n2. Put small dry sticks over it like a pyramid.\n3. Light the grass with a lighter or match.\n4. Blow gently until the sticks catch fire.`;
+            }
+
+            // Reset memory on unrelated queries to avoid getting stuck
+            window.offlineLastTopic = null;
+
+            // 5. Ultimate Fallback
+            let cleanQ = question.toLowerCase();
+            if (cleanQ.startsWith("@ai ")) cleanQ = cleanQ.substring(4);
+            return `*Zentryx Core (Offline)*: I see you're asking about "${cleanQ.slice(0, 30).trim()}${cleanQ.length > 30 ? '...' : ''}". Right now, my connection to the global AI mainframe is disabled, so I only have my local travel databases active. Without my Neural Link (Gemini API key), I cannot remember our past conversation or answer dynamic questions. Please link the API key via the gear icon above!`;
         }
 
         // --- GEMINI AI ENGINE ---
@@ -1438,14 +1457,19 @@
             const timeoutId = setTimeout(() => controller.abort(), 30000);
 
             try {
+                window.geminiChatHistory = window.geminiChatHistory || [
+                    { role: "user", parts: [{ text: "System Directive: You are Zentryx, an advanced, highly adaptive AI assistant running on a futuristic network. While your primary expertise is global travel, economics, and logistics, you are highly capable and happy to answer ANY question the user asks. Maintain a confident, friendly, and slightly futuristic personality. Answer naturally and adapt to the topic. Keep answers clear, concise, and use plain text only — no markdown. Do you understand?" }] },
+                    { role: "model", parts: [{ text: "Understood. I am Zentryx. Initializing adaptable neural pathways. How can I assist you today, Commander?" }] }
+                ];
+                
+                const currentContents = [...window.geminiChatHistory, { role: "user", parts: [{ text: prompt }] }];
+
                 const res = await fetch(url, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     signal: controller.signal,
                     body: JSON.stringify({
-                        contents: [{
-                            parts: [{ text: "You are Zentryx, a helpful travel and navigation AI assistant. Give useful detailed answers. For travel questions include realistic times, costs, and practical tips. For budget questions provide detailed price breakdowns with local currency amounts. Keep answers clear, concise, and use plain text only — no markdown, no asterisks, no hashtags. User question: " + prompt }]
-                        }],
+                        contents: currentContents,
                         generationConfig: {
                             maxOutputTokens: 1024,
                             temperature: 0.7
@@ -1465,6 +1489,12 @@
                 let text = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
                 // Clean any remaining markdown
                 text = text.replace(/\*\*/g, '').replace(/\*/g, '').replace(/#{1,6}\s/g, '').trim();
+                
+                if (text) {
+                    window.geminiChatHistory.push({ role: "user", parts: [{ text: prompt }] });
+                    window.geminiChatHistory.push({ role: "model", parts: [{ text: text }] });
+                }
+                
                 return text || null;
             } catch (e) {
                 clearTimeout(timeoutId);
@@ -1770,7 +1800,13 @@
         - Alerts: ${COMMUNITY_DATA.alerts.map(a => a.msg).join(', ')}
     `;
             const enrichedPrompt = `Context: ${context}. Question: ${prompt}`;
-            return await originalQueryAI(enrichedPrompt);
+            // Try Gemini first WITH context
+            const geminiResponse = await queryGemini(enrichedPrompt);
+            if (geminiResponse && geminiResponse.length > 5) {
+                return geminiResponse;
+            }
+            // Fallback to offline database WITHOUT context
+            return getOfflineResponse(prompt);
         };
 
         function updateAvailability(hotelId) {
